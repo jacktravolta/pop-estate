@@ -20,32 +20,34 @@ class SettlementController extends AbstractController
         $estado = $request->query->get('estado','');
         $page = max(1, (int)$request->query->get('page',1));
         $perPage = 10;
-
         $kpi = $repo->getKpiData();
         $qb = $repo->createFilteredQueryBuilder($q ?: null, $estado ?: null);
         $total = count($qb->getQuery()->getResult());
         $totalPages = max(1, (int)ceil($total/$perPage));
         $settlements = $qb->setFirstResult(($page-1)*$perPage)->setMaxResults($perPage)->getQuery()->getResult();
-
         return $this->render('settlement/index.html.twig', [
             'settlements' => $settlements,
             'form' => $this->createForm(SettlementType::class, new Settlement())->createView(),
-            'kpi' => $kpi,
-            'q' => $q,
-            'estadoFilter' => $estado,
-            'page' => $page,
-            'totalPages' => $totalPages,
-            'totalResults' => $total,
+            'kpi' => $kpi, 'q' => $q, 'estadoFilter' => $estado,
+            'page' => $page, 'totalPages' => $totalPages, 'totalResults' => $total,
         ]);
     }
 
-    #[Route('/new', name: 'app_settlement_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
+    #[Route('/new', name: 'app_settlement_new', methods: ['GET','POST'])]
+    public function new(Request $request, EntityManagerInterface $em, SettlementRepository $repo): Response
     {
         $settlement = new Settlement();
         $form = $this->createForm(SettlementType::class, $settlement);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            // VALIDACIÓN DUPLICIDAD
+            if ($settlement->getProperty() && $settlement->getFechaInicio() && $settlement->getFechaTermino()) {
+                $dup = $repo->findDuplicate($settlement->getProperty(), $settlement->getFechaInicio(), $settlement->getFechaTermino());
+                if ($dup) {
+                    $this->addFlash('danger', 'Ya existe liquidación #'.$dup->getId().' para '.$dup->getProperty()->getDireccion().' en periodo '.$dup->getFechaInicio()->format('d/m/Y').' - '.$dup->getFechaTermino()->format('d/m/Y').' ('.$dup->getEstado().')');
+                    return $this->render('settlement/new.html.twig', ['form'=>$form->createView(),'settlement'=>$settlement]);
+                }
+            }
             $settlement->setEstado('PENDIENTE');
             $settlement->setCreatedAt(new \DateTimeImmutable());
             $settlement->setCreatedBy($this->getUser());
@@ -55,21 +57,17 @@ class SettlementController extends AbstractController
             $this->addFlash('success','Liquidación #'.$settlement->getId().' creada');
             return $this->redirectToRoute('app_settlement_index');
         }
-        return $this->render('settlement/index.html.twig', [
-            'settlements' => $em->getRepository(Settlement::class)->findBy([], ['id'=>'DESC']),
-            'form' => $form->createView(),
-            'kpi' => $em->getRepository(Settlement::class)->getKpiData(),
-            'q' => '', 'estadoFilter' => '', 'page' => 1, 'totalPages' => 1, 'totalResults' => 0
-        ]);
+        return $this->render('settlement/new.html.twig', ['form'=>$form->createView(),'settlement'=>$settlement]);
     }
 
-    #[Route('/{id}', name: 'app_settlement_show', methods: ['GET'])]
-    public function show(Settlement $s): Response {
-        return $this->render('settlement/show.html.twig', ['settlement'=>$s]);
+    #[Route('/{id}', name: 'app_settlement_show', requirements: ['id'=>'\d+'], methods: ['GET'])]
+    public function show(Settlement $settlement): Response {
+        // Para modal necesitamos render sin base si es AJAX
+        return $this->render('settlement/show.html.twig', ['settlement'=>$settlement]);
     }
 
-    #[Route('/{id}/edit', name: 'app_settlement_edit', methods: ['GET','POST'])]
-    public function edit(Request $request, Settlement $s, EntityManagerInterface $em): Response
+    #[Route('/{id}/edit', name: 'app_settlement_edit', requirements: ['id'=>'\d+'], methods: ['GET','POST'])]
+    public function edit(Request $request, Settlement $s, EntityManagerInterface $em, SettlementRepository $repo): Response
     {
         if ($s->getEstado() !== 'PENDIENTE') {
             $this->addFlash('warning','Solo PENDIENTE editable. Estado: '.$s->getEstado());
@@ -78,6 +76,13 @@ class SettlementController extends AbstractController
         $form = $this->createForm(SettlementType::class, $s);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            if ($s->getProperty() && $s->getFechaInicio() && $s->getFechaTermino()) {
+                $dup = $repo->findDuplicate($s->getProperty(), $s->getFechaInicio(), $s->getFechaTermino(), $s->getId());
+                if ($dup) {
+                    $this->addFlash('danger', 'Duplicado: ya existe liquidación #'.$dup->getId().' para ese periodo');
+                    return $this->render('settlement/edit.html.twig', ['settlement'=>$s,'form'=>$form->createView()]);
+                }
+            }
             $this->recalcular($s);
             $em->flush();
             $this->addFlash('success','Actualizada');
@@ -86,7 +91,7 @@ class SettlementController extends AbstractController
         return $this->render('settlement/edit.html.twig', ['settlement'=>$s,'form'=>$form->createView()]);
     }
 
-    #[Route('/{id}/delete', name: 'app_settlement_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'app_settlement_delete', requirements: ['id'=>'\d+'], methods: ['POST'])]
     public function delete(Request $request, Settlement $s, EntityManagerInterface $em): Response
     {
         if (!$this->isCsrfTokenValid('delete'.$s->getId(), $request->request->get('_token'))) {
@@ -98,15 +103,14 @@ class SettlementController extends AbstractController
             $this->addFlash('danger','Observación mínima 10 caracteres para anular');
             return $this->redirectToRoute('app_settlement_index');
         }
-        // Req #2: No hard delete, pasa a ANULADA con auditoría observacion + fecha + usuario
         $s->setEstado('ANULADA');
         $s->setObservacion($motivo);
         $em->flush();
-        $this->addFlash('success','Liquidación #'.$s->getId().' ANULADA: '.$motivo);
+        $this->addFlash('success','Liquidación #'.$s->getId().' ANULADA');
         return $this->redirectToRoute('app_settlement_index');
     }
 
-    #[Route('/{id}/pay', name: 'app_settlement_pay', methods: ['POST'])]
+    #[Route('/{id}/pay', name: 'app_settlement_pay', requirements: ['id'=>'\d+'], methods: ['POST'])]
     public function pay(Request $request, Settlement $s, EntityManagerInterface $em): Response
     {
         if ($this->isCsrfTokenValid('pay'.$s->getId(), $request->request->get('_token'))) {
@@ -118,7 +122,7 @@ class SettlementController extends AbstractController
         return $this->redirectToRoute('app_settlement_index');
     }
 
-    #[Route('/{id}/pdf', name: 'app_settlement_pdf', methods: ['GET'])]
+    #[Route('/{id}/pdf', name: 'app_settlement_pdf', requirements: ['id'=>'\d+'], methods: ['GET'])]
     public function pdf(Settlement $s): Response {
         return $this->render('settlement/pdf.html.twig', ['settlement'=>$s]);
     }

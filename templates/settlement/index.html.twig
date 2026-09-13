@@ -54,7 +54,7 @@
           <option value="ANULADA" {% if estadoFilter == 'ANULADA' %}selected{% endif %}>ANULADA</option>
         </select>
       </form>
-      <button class="btn btn-sm rounded-pill px-3" style="background:#6366f1;color:white;font-weight:600" data-bs-toggle="modal" data-bs-target="#newSettlementModal"><i class="bi bi-plus-lg me-1"></i> Nueva</button>
+      <a href="{{ path('app_settlement_new') }}" class="btn btn-sm rounded-pill px-3" style="background:#6366f1;color:white;font-weight:600"><i class="bi bi-plus-lg me-1"></i> Nueva</a>
     </div>
   </div>
 
@@ -78,7 +78,7 @@
             </td>
             <td class="text-end" style="padding-right:16px">
               <div class="d-inline-flex gap-1">
-                <a href="{{ path('app_settlement_show', {'id': s.id}) }}" class="btn btn-sm" style="width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:#eef2ff;color:#6366f1;border:1px solid #e0e7ff" title="Ver"><i class="bi bi-eye"></i></a>
+                <a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_settlement_show', {'id': s.id}) }}')" class="btn btn-sm" style="width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:#eef2ff;color:#6366f1;border:1px solid #e0e7ff" title="Ver"><i class="bi bi-eye"></i></a>
                 {% if s.estado == 'PENDIENTE' %}
                   <a href="{{ path('app_settlement_edit', {'id': s.id}) }}" class="btn btn-sm" style="width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:#f8fafc;color:#0f172a;border:1px solid #e2e8f0" title="Editar"><i class="bi bi-pencil"></i></a>
                 {% else %}
