@@ -27,6 +27,19 @@ class Invoice
     #[ORM\Column(length: 20)]
     private ?string $estado = 'PENDIENTE';
 
+    // --- NUEVO REQ #2 y #5: auditoría para ANULADA (no rompe down -v) ---
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $observacion = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?\App\Entity\User $createdBy = null;
+
+    public function __construct(){ $this->createdAt = new \DateTimeImmutable(); }
+
     public function getId(): ?int { return $this->id; }
     public function getFolio(): ?string { return $this->folio; }
     public function setFolio(string $folio): static { $this->folio = $folio; return $this; }
@@ -39,5 +52,11 @@ class Invoice
     public function getTotal(): ?float { return $this->total; }
     public function setTotal(float $total): static { $this->total = $total; return $this; }
     public function getEstado(): ?string { return $this->estado; }
-    public function setEstado(string $estado): static { $this->estado = $estado; return $this; }
+    public function setEstado(string $estado): static { $this->estado = strtoupper($estado); return $this; }
+    public function getObservacion(): ?string { return $this->observacion; }
+    public function setObservacion(?string $obs): static { $this->observacion = $obs; return $this; }
+    public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
+    public function setCreatedAt(?\DateTimeImmutable $dt): static { $this->createdAt = $dt; return $this; }
+    public function getCreatedBy(): ?\App\Entity\User { return $this->createdBy; }
+    public function setCreatedBy(?\App\Entity\User $u): static { $this->createdBy = $u; return $this; }
 }
