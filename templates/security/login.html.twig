@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Pop Estate - Login</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--indigo:#6366f1; --indigo-dark:#4f46e5;}
+body{font-family:'Inter',sans-serif; background:#f8fafc; min-height:100vh; display:flex; align-items:center; justify-content:center;}
+.login-card{background:#fff; border:1px solid #e2e8f0; border-radius:20px; box-shadow:0 12px 40px rgba(0,0,0,.08); padding:2.5rem; width:100%; max-width:420px;}
+.btn-indigo{background:var(--indigo); color:#fff; border-radius:12px; padding:.75rem; font-weight:600; border:0; width:100%; transition:.2s;}
+.btn-indigo:hover{background:var(--indigo-dark); color:#fff; transform:translateY(-1px);}
+.form-control{border:2px solid #e2e8f0; border-radius:12px; padding:.8rem 1rem;}
+.form-control:focus{border-color:var(--indigo); box-shadow:0 0 0 4px rgba(99,102,241,.15);}
+</style>
+</head><body>
+<div class="login-card">
+  <div class="text-center mb-4">
+    <div style="width:56px; height:56px; background:var(--indigo); color:#fff; border-radius:16px; display:inline-flex; align-items:center; justify-content:center; font-size:24px;"><i class="bi bi-buildings"></i></div>
+    <h4 class="fw-bold mt-3 mb-1">Pop Estate</h4>
+    <p class="text-muted small">Ingresa a tu cuenta</p>
+  </div>
+
+  {% if error %}<div class="alert alert-danger border-0 rounded-3 small"><i class="bi bi-exclamation-triangle me-1"></i> {{ error.messageKey|trans(error.messageData, 'security') }}</div>{% endif %}
+
+  <form method="post">
+    <div class="mb-3">
+      <label class="small fw-bold text-uppercase text-muted mb-1">Email</label>
+      <input type="email" value="{{ last_username }}" name="_username" class="form-control" placeholder="admin@pop.cl" required autofocus>
+    </div>
+    <div class="mb-3">
+      <label class="small fw-bold text-uppercase text-muted mb-1">Contraseña</label>
+      <input type="password" name="_password" class="form-control" placeholder="••••••••" required>
+    </div>
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+    <button class="btn btn-indigo mt-2" type="submit">Ingresar <i class="bi bi-arrow-right ms-1"></i></button>
+  </form>
+
+  <div class="text-center mt-4 small text-muted">
+    Demo: admin@pop.cl / admin123
+  </div>
+</div>
+</body></html>

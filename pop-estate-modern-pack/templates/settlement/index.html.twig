@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+{% block title %}Liquidaciones{% endblock %}
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h3 class="fw-bold mb-0">Liquidaciones</h3>
+  <div class="d-flex gap-2"><a href="{{ path('settlement_new') }}" class="btn btn-indigo"><i class="bi bi-plus-lg"></i> Nueva liquidación</a></div>
+</div>
+
+<div class="card-modern p-3 mb-3">
+  <div class="row g-2 align-items-center">
+    <div class="col-md-4"><div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input id="q" class="form-control border-start-0" placeholder="Buscar dirección, rol, empresa..."></div></div>
+    <div class="col-md-2"><select id="estado" class="form-select"><option value="">Todos estados</option><option value="PAGADA">PAGADA</option><option value="PENDIENTE">PENDIENTE</option><option value="ANULADA">ANULADA</option></select></div>
+    <div class="col-md-2"><input type="month" id="periodo" class="form-control"></div>
+    <div class="col-md-2"><select id="perPage" class="form-select"><option value="10">10 / pág</option><option value="25">25 / pág</option><option value="50">50 / pág</option></select></div>
+    <div class="col-md-2 text-end"><small class="text-muted" id="info"></small></div>
+  </div>
+</div>
+
+<div class="card-modern">
+  <div class="table-responsive">
+    <table class="table table-modern align-middle">
+      <thead><tr><th>Propiedad</th><th>Periodo</th><th class="text-end">Total</th><th>Estado</th><th style="width:120px"></th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="5" class="text-center py-5"><div class="spinner-border"></div></td></tr></tbody>
+    </table>
+  </div>
+  <div class="p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div id="pagInfo" class="small text-muted"></div>
+    <nav><ul class="pagination pagination-sm mb-0" id="pagination"></ul></nav>
+  </div>
+</div>
+{% endblock %}
+{% block javascripts %}
+<script>
+let page=1, lastData=null;
+function renderRow(s){
+  return `<tr><td><div class="fw-semibold">${s.direccion||s.property||''}</div><small class="text-muted">${s.rol||''} • ${s.company||''}</small></td><td>${s.periodo||s.fecha_inicio||''}</td><td class="text-end fw-semibold">$${Number(s.total||0).toLocaleString('es-CL')}</td><td><span class="badge ${s.estado==='PAGADA'?'bg-success-soft text-success': s.estado==='PENDIENTE'?'bg-warning-soft text-warning':'bg-danger-soft text-danger'}">${s.estado}</span></td><td><div class="d-flex gap-1"><a href="/settlements/${s.id}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i></a><a href="/settlements/${s.id}/edit" class="btn btn-sm btn-light"><i class="bi bi-pencil"></i></a></div></td></tr>`;
+}
+async function load(){
+  const q=document.getElementById('q').value, estado=document.getElementById('estado').value, periodo=document.getElementById('periodo').value, per=document.getElementById('perPage').value;
+  const url=`{{ path('settlement_index') }}?format=json&q=${encodeURIComponent(q)}&estado=${encodeURIComponent(estado)}&periodo=${periodo}&page=${page}&perPage=${per}`;
+  document.getElementById('tbody').innerHTML=`<tr><td colspan="5" class="text-center py-4"><div class="skeleton"></div><div class="skeleton mt-2"></div></td></tr>`;
+  try{
+    const r=await fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'}});
+    const ct=r.headers.get('content-type')||'';
+    if(!ct.includes('json')){ // fallback si tu controller aún no devuelve json, usa DOM actual
+      document.getElementById('tbody').innerHTML=`<tr><td colspan="5" class="text-center py-4 text-muted">Tu SettlementController aún devuelve HTML. Agrega soporte ?format=json o usa /api/settlements. Mostrando fallback...</td></tr>`; return;
+    }
+    const data=await r.json(); lastData=data;
+    document.getElementById('tbody').innerHTML = (data.items||[]).map(renderRow).join('') || `<tr><td colspan="5" class="text-center py-4">Sin resultados</td></tr>`;
+    document.getElementById('pagInfo').textContent = `Mostrando ${data.from||0}-${data.to||0} de ${data.total||0}`;
+    let pagHtml=''; for(let i=1;i<= (data.last_page||1); i++){ pagHtml+=`<li class="page-item ${i===data.page?'active':''}"><a class="page-link" href="#" data-p="${i}">${i}</a></li>`; } document.getElementById('pagination').innerHTML=pagHtml;
+    document.querySelectorAll('#pagination a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault(); page=parseInt(a.dataset.p); load();}));
+  }catch(e){ document.getElementById('tbody').innerHTML=`<tr><td colspan="5" class="text-center text-danger py-3">${e.message}</td></tr>`; }
+}
+let t; ['q','estado','periodo','perPage'].forEach(id=>document.getElementById(id)?.addEventListener('input',()=>{clearTimeout(t); t=setTimeout(()=>{page=1; load();},300);}));
+document.addEventListener('DOMContentLoaded', load);
+</script>
+{% endblock %}

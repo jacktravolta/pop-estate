@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+{% block title %}Generador Facturas{% endblock %}
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0">Generador de Facturas</h3>
+  <a href="{{ path('app_invoice_index') }}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+{% for label, messages in app.flashes %}
+  {% for message in messages %}
+    <div class="alert alert-{{ label }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}
+{% endfor %}
+
+<div class="card-modern p-4 mb-4">
+  <form method="post" class="row g-3 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label">Periodo (YYYY-MM)</label>
+      <input type="month" name="periodo" value="{{ periodo }}" class="form-control" required>
+    </div>
+    <div class="col-md-8">
+      <button type="submit" class="btn btn-indigo"><i class="bi bi-gear"></i> Previsualizar</button>
+    </div>
+  </form>
+</div>
+
+{% if preview is defined and preview %}
+<div class="card-modern p-4">
+  <h5>Preview: {{ preview.total_settlements|default(0) }} liquidaciones - Total: ${{ preview.total_monto|default(0)|number_format(0,',','.') }}</h5>
+  <table class="table table-modern mt-3">
+    <thead><tr><th>Propiedad</th><th>Propietario</th><th>Monto</th></tr></thead>
+    <tbody>
+      {% for item in preview.items|default([]) %}
+      <tr><td>{{ item.direccion|default('—') }}</td><td>{{ item.propietario|default('—') }}</td><td>${{ item.monto|default(0)|number_format(0,',','.') }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form method="post" action="{{ path('app_invoice_new')|default('/invoices/new') }}">
+    <input type="hidden" name="periodo" value="{{ periodo }}">
+    <button class="btn btn-success"><i class="bi bi-receipt"></i> Generar Facturas</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Liquidación #{{ settlement.id }}</title>
+<style>
+  body{font-family:Inter,Helvetica,Arial,sans-serif;background:white;color:#0f172a;margin:0;padding:24px}
+  .header{border:2px solid #e0e7ff;border-radius:16px;padding:20px;position:relative;overflow:hidden}
+  .header:before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#6366f1,#a78bfa)}
+  .badge{border-radius:20px;padding:6px 12px;font-size:10px;font-weight:800;display:inline-block}
+  .item{border:1.5px solid #e2e8f0;border-left:3px solid #6366f1;border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;margin-bottom:10px}
+  .item.even{background:#f1f5f9;border-left-color:#c7d2fe}
+  .totals{background:#eef2ff;border:1.5px solid #c7d2fe;border-radius:14px;padding:16px;margin-top:20px}
+  .row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px}
+  @media print{body{padding:0}.no-print{display:none}}
+</style>
+</head>
+<body>
+  <div style="text-align:center;margin-bottom:20px">
+    <h2 style="margin:0;font-size:20px">POP ESTATE</h2>
+    <div style="font-size:11px;color:#64748b;letter-spacing:.1em">LIQUIDACIÓN OFICIAL</div>
+  </div>
+
+  <div class="header">
+    <div style="display:flex;justify-content:space-between">
+      <div>
+        <div style="font-size:10px;font-weight:800;color:#6366f1;letter-spacing:.08em">LIQUIDACIÓN #{{ settlement.id }}</div>
+        <div style="font-size:16px;font-weight:800;margin-top:6px">{{ settlement.property.direccion ?? 'Propiedad' }}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:4px">{{ settlement.property.comuna ?? '' }}</div>
+        <div style="margin-top:12px;font-size:11px;color:#475569">Periodo: {{ settlement.fechaInicio|date('d/m/Y') }} → {{ settlement.fechaTermino|date('d/m/Y') }}</div>
+      </div>
+      <div><span class="badge" style="background:{% if settlement.estado == 'PAGADA' %}#ecfdf5;color:#059669;border:1px solid #a7f3d0{% else %}#eef2ff;color:#4338ca;border:1px solid #c7d2fe{% endif %}">{{ settlement.estado }}</span></div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px">
+    <div style="font-size:10px;font-weight:800;color:#6366f1;letter-spacing:.08em;margin-bottom:10px">DETALLE</div>
+    {% for item in settlement.items %}
+      <div class="item {% if loop.index is even %}even{% endif %}">
+        <div><div style="font-weight:600;font-size:13px">{{ item.descripcion }}</div><div style="margin-top:4px"><span class="badge" style="background:{% if item.tipo == 'DESCUENTO' %}#fef3c7;color:#92400e{% else %}#eef2ff;color:#4338ca{% endif %};font-size:9px">{{ item.tipo }}</span></div></div>
+        <div style="font-weight:800;font-size:14px;color:{% if item.tipo == 'DESCUENTO' %}#ef4444{% else %}#0f172a{% endif %}">{% if item.tipo == 'DESCUENTO' %}-{% endif %}${{ item.monto|number_format(0, ',', '.') }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% set cargo = 0 %}{% set desc = 0 %}{% for i in settlement.items %}{% if i.tipo == 'DESCUENTO' %}{% set desc = desc + i.monto %}{% else %}{% set cargo = cargo + i.monto %}{% endif %}{% endfor %}
+  {% set neto = cargo - desc %}{% set iva = (neto * 0.19)|round %}{% set total = neto + iva %}
+
+  <div class="totals">
+    <div class="row"><span>Cargos</span><b>${{ cargo|number_format(0, ',', '.') }}</b></div>
+    <div class="row"><span>Descuentos</span><b style="color:#ef4444">-${{ desc|number_format(0, ',', '.') }}</b></div>
+    <div class="row"><span>Neto</span><b>${{ neto|number_format(0, ',', '.') }}</b></div>
+    <div class="row" style="border-top:1px solid #c7d2fe;padding-top:8px;margin-top:8px"><span>IVA 19%</span><b>${{ iva|number_format(0, ',', '.') }}</b></div>
+    <div class="row" style="border-top:2px solid #6366f1;padding-top:12px;margin-top:12px;font-size:16px"><span style="font-weight:800;color:#4338ca">TOTAL</span><b style="font-size:20px;color:#4338ca">${{ total|number_format(0, ',', '.') }}</b></div>
+  </div>
+
+  <div style="text-align:center;margin-top:30px;font-size:10px;color:#94a3b8">Generado por POP ESTATE • {{ "now"|date('d/m/Y H:i') }} • Formato 2 Minimal Lila</div>
+
+  <div class="no-print" style="text-align:center;margin-top:20px"><button onclick="window.print()" style="background:#6366f1;color:white;border:0;padding:10px 20px;border-radius:20px;font-weight:600;cursor:pointer">Imprimir / Guardar PDF</button> <a href="{{ path('app_settlement_index') }}" style="margin-left:10px;color:#64748b">Volver</a></div>
+</body>
+</html>

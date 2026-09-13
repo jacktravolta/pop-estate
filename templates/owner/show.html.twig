@@ -1,0 +1,8 @@
+{% extends (app.request.query.get('modal') or app.request.isXmlHttpRequest) ? '_blank.html.twig' : 'base.html.twig' %}
+{% block body %}
+<div class="p-4">
+<h4 class="fw-bold">Detalle #{{ owner.id }}</h4>
+<pre class="small bg-light p-3 rounded">{{ dump(owner) }}</pre>
+<a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_owner_edit', {id:owner.id}) }}?modal=1','Editar')" class="btn btn-indigo w-100 rounded-pill mt-3">Editar</a>
+</div>
+{% endblock %}

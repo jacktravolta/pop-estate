@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}{% block title %}Editar Liquidación #{{ settlement.id }}{% endblock %}{% block body %}
+<a href="{{ path('app_settlement_show', {'id': settlement.id}) }}" class="btn btn-sm btn-light rounded-pill mb-3"><i class="bi bi-arrow-left"></i> Volver</a>
+<h3 class="fw-bold mb-1">Editar liquidación #{{ settlement.id }}</h3>
+<div class="card-modern p-4 p-md-5"><div class="form-modern">
+{{ form_start(form) }}
+<div class="form-section">
+  <div class="row">
+    <div class="col-md-6">{{ form_row(form.property) }}</div>
+    <div class="col-md-3">{{ form_row(form.fechaInicio) }}</div>
+    <div class="col-md-3">{{ form_row(form.fechaTermino) }}</div>
+  </div>
+</div>
+<div class="form-section">
+  <div class="form-section-title"><i class="bi bi-list-ul text-primary"></i> Items</div>
+  {% for itemForm in form.items %}
+    <div class="row g-2 mb-2 p-2 bg-white rounded-3 border">
+      <div class="col-md-5">{{ form_row(itemForm.descripcion) }}</div>
+      <div class="col-md-3">{{ form_row(itemForm.monto) }}</div>
+      <div class="col-md-3">{{ form_row(itemForm.tipo) }}</div>
+    </div>
+  {% endfor %}
+</div>
+<div class="mt-4"><button class="btn btn-indigo px-4">Actualizar</button></div>
+{{ form_end(form) }}
+</div></div>
+{% endblock %}

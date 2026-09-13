@@ -1,0 +1,221 @@
+{{ form_start(form, {'attr': {'id': 'settlement-form', 'action': path('app_settlement_new')}}) }}
+<div class="p-3" style="font-family: Inter, system-ui; background:#f8fafc; border-radius:20px">
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <div style="font-size:11px; font-weight:800; letter-spacing:.08em; color:#0f172a">NUEVA LIQUIDACIÓN</div>
+      <div style="font-size:11px; color:#64748b">Propiedad + cargos en formato vertical</div>
+    </div>
+    <b id="sum-total" style="background:#0f172a; color:white; padding:6px 12px; border-radius:999px; font-size:14px">$0</b>
+  </div>
+
+  <!-- PROPIEDAD PRO -->
+  <div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-body p-3">
+      <label style="font-size:10px; font-weight:800; letter-spacing:.06em; color:#64748b">PROPIEDAD *</label>
+      <div class="input-group mt-2" style="border:1px solid #e2e8f0; border-radius:12px; overflow:hidden">
+        <span class="input-group-text bg-white border-0"><i class="bi bi-search" style="color:#94a3b8"></i></span>
+        <input type="text" id="prop-search" class="form-control border-0 shadow-none" placeholder="Ej: av matta, 5665, apoquindo... vacío = ver todas" style="font-size:13px; height:42px" autocomplete="off">
+        <button type="button" id="prop-clear" class="btn bg-white border-0" style="display:none"><i class="bi bi-x-lg" style="font-size:12px"></i></button>
+      </div>
+      <div id="prop-hint" style="font-size:10px; color:#94a3b8; margin-top:6px"></div>
+      <div class="mt-2">{{ form_widget(form.property, {'attr': {'class': 'form-select', 'style': 'border-radius:12px; font-size:13px; height:44px'}}) }}</div>
+      <div id="prop-ok" style="display:none; margin-top:8px; font-size:11px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:8px 12px; border-radius:10px"></div>
+    </div>
+  </div>
+
+  <!-- FECHAS -->
+  <div class="row g-2 mb-3">
+    <div class="col-6">
+      <div class="card border-0 shadow-sm rounded-4"><div class="card-body p-3"><label style="font-size:10px; font-weight:800; color:#64748b">DESDE</label>{{ form_widget(form.fechaInicio, {'attr': {'class': 'form-control border-0', 'style': 'font-size:13px; background:#f8fafc; border-radius:10px; height:38px'}}) }}</div></div>
+    </div>
+    <div class="col-6">
+      <div class="card border-0 shadow-sm rounded-4"><div class="card-body p-3"><label style="font-size:10px; font-weight:800; color:#64748b">HASTA</label>{{ form_widget(form.fechaTermino, {'attr': {'class': 'form-control border-0', 'style': 'font-size:13px; background:#f8fafc; border-radius:10px; height:38px'}}) }}</div></div>
+    </div>
+  </div>
+
+  <!-- ITEMS HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <span style="font-size:10px; font-weight:800; letter-spacing:.06em; color:#0f172a">DETALLE — VERTICAL</span>
+    <button type="button" id="btn-add-item" class="btn btn-dark btn-sm rounded-pill px-3"><i class="bi bi-plus-lg me-1"></i> Agregar item</button>
+  </div>
+
+  <!-- ITEMS WRAPPER -->
+  <div id="items-wrapper" data-index="{{ form.items|length }}" data-prototype="{{ form_widget(form.items.vars.prototype)|e('html_attr') }}" class="d-flex flex-column gap-2">
+    {% for item in form.items %}
+      <div class="item-row card border-0 shadow-sm rounded-4">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div style="min-width:120px">{{ form_widget(item.tipo, {'attr': {'class': 'form-select form-select-sm', 'style': 'border-radius:999px; font-size:11px; font-weight:700; height:32px; background:#0f172a; color:white; border:0'}}) }}</div>
+            <button type="button" class="btn btn-light btn-sm rounded-circle btn-del" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0"><i class="bi bi-trash" style="font-size:13px; color:#ef4444"></i></button>
+          </div>
+          <div class="mb-2">
+            <label style="font-size:9px; font-weight:800; color:#94a3b8; letter-spacing:.06em">DESCRIPCIÓN</label>
+            {{ form_widget(item.descripcion, {'attr': {'class': 'form-control', 'placeholder': 'Ej: Arriendo, Gastos comunes, Multa...', 'style': 'border-radius:12px; font-size:13px; height:42px; border:1px solid #e2e8f0'}}) }}
+          </div>
+          <div>
+            <label style="font-size:9px; font-weight:800; color:#94a3b8; letter-spacing:.06em">MONTO</label>
+            <div class="input-group" style="border:1px solid #e2e8f0; border-radius:12px; overflow:hidden">
+              <span class="input-group-text bg-white border-0" style="font-weight:800">$</span>
+              {{ form_widget(item.monto, {'attr': {'class': 'form-control border-0 text-end fw-bold', 'placeholder': '0', 'style': 'font-size:15px; height:42px; box-shadow:none'}}) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- TOTALES PRO -->
+  <div class="card border-0 rounded-4 mt-3" style="background:#0f172a; color:white">
+    <div class="card-body p-3" style="font-size:11px">
+      <div class="d-flex justify-content-between mb-1" style="opacity:.7"><span><i class="bi bi-plus-circle me-1"></i> Cargos</span><b id="sum-cargo">$0</b></div>
+      <div class="d-flex justify-content-between mb-1" style="opacity:.7"><span><i class="bi bi-dash-circle me-1"></i> Descuentos</span><b id="sum-desc" style="color:#fca5a5">$0</b></div>
+      <div class="d-flex justify-content-between mb-2" style="opacity:.7"><span>Neto</span><b id="sum-neto">$0</b></div>
+      <div class="d-flex justify-content-between pt-2" style="border-top:1px solid rgba(255,255,255,.12)"><span>IVA 19%</span><b id="sum-iva">$0</b></div>
+      <div class="d-flex justify-content-between pt-2 mt-2 align-items-center" style="border-top:1px solid rgba(255,255,255,.15)"><span style="font-weight:800; letter-spacing:.06em">TOTAL</span><b id="sum-total-final" style="font-size:18px">$0</b></div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+    <button type="submit" class="btn btn-dark rounded-pill px-4" style="background:#0f172a"><i class="bi bi-check-lg me-1"></i> Guardar</button>
+  </div>
+</div>
+{{ form_end(form) }}
+
+<script>
+(() => {
+  try {
+    const wrapper=document.getElementById('items-wrapper');
+    const btnAdd=document.getElementById('btn-add-item');
+    const search=document.getElementById('prop-search');
+    const hint=document.getElementById('prop-hint');
+    const ok=document.getElementById('prop-ok');
+    const clear=document.getElementById('prop-clear');
+    const sel=document.querySelector('form#settlement-form select');
+    if(!sel) return;
+    const all=Array.from(sel.options).map(o=>({value:o.value, text:(o.text||'').trim(), lower:(o.text||'').toLowerCase()}));
+    const real=all.filter(o=>o.value);
+    if(hint) hint.textContent=real.length+' propiedades — escribe "av matta" o "5665" y se auto-selecciona';
+
+    const render=(term)=>{
+      const t=(term||'').toLowerCase().trim();
+      const cur=sel.value;
+      sel.innerHTML='';
+      const ph=all.find(o=>!o.value);
+      if(ph){ const opt=document.createElement('option'); opt.value=''; opt.textContent=ph.text; sel.appendChild(opt); }
+      let filtered=real;
+      if(t) filtered=real.filter(o=>o.lower.includes(t) || o.value.includes(t));
+      filtered.forEach(o=>{ const opt=document.createElement('option'); opt.value=o.value; opt.textContent=o.text; sel.appendChild(opt); });
+      if(t.length>=2 && filtered.length===1){
+        sel.value=filtered[0].value;
+        if(ok){ ok.style.display='block'; ok.innerHTML='<i class="bi bi-check-circle-fill me-1"></i> Auto: '+filtered[0].text; }
+        if(search && search.value!==filtered[0].text) search.value=filtered[0].text;
+        if(clear) clear.style.display='block';
+        return;
+      }
+      if(cur && Array.from(sel.options).some(o=>o.value===cur)) sel.value=cur;
+      if(!t && ok) ok.style.display='none';
+    };
+
+    let to=null;
+    if(search){
+      search.addEventListener('input', e=>{
+        const v=e.target.value;
+        if(clear) clear.style.display=v?'block':'none';
+        clearTimeout(to);
+        to=setTimeout(()=>render(v),120);
+        render(v);
+      });
+      search.addEventListener('focus',()=>render(search.value));
+      search.addEventListener('click',()=>render(search.value));
+    }
+    if(clear){ clear.addEventListener('click',()=>{ search.value=''; render(''); clear.style.display='none'; if(ok) ok.style.display='none'; search.focus(); }); }
+    sel.addEventListener('change',()=>{ const o=sel.options[sel.selectedIndex]; if(o&&o.value){ if(ok){ ok.style.display='block'; ok.innerHTML='<i class="bi bi-check-circle-fill me-1"></i> '+o.text; } if(search) search.value=o.text; if(clear) clear.style.display='block'; } });
+    render('');
+
+    const calc=()=>{
+      if(!wrapper) return;
+      let c=0,d=0;
+      wrapper.querySelectorAll('.item-row').forEach(r=>{
+        const tipo=r.querySelector('select[name*="[tipo]"]');
+        const monto=r.querySelector('input[name*="[monto]"]');
+        const v=parseFloat(monto?.value||0)||0;
+        if(tipo && tipo.value==='DESCUENTO') d+=Math.abs(v); else c+=Math.abs(v);
+      });
+      const neto=c-d; const iva=Math.round(neto*0.19*100)/100; const tot=neto+iva;
+      const fmt=n=>'$'+n.toLocaleString('es-CL');
+      const set=(id,va)=>{ const el=document.getElementById(id); if(el) el.textContent=va; };
+      set('sum-cargo',fmt(c)); set('sum-desc','-'+fmt(d)); set('sum-neto',fmt(neto)); set('sum-iva',fmt(iva)); set('sum-total',fmt(tot)); set('sum-total-final',fmt(tot));
+    };
+
+    const makeVerticalCard=(protoHtml, idx)=>{
+      const temp=document.createElement('div');
+      temp.innerHTML=protoHtml;
+      const tipoSel=temp.querySelector('select');
+      const inputs=[...temp.querySelectorAll('input')];
+      const descInp=inputs.find(i=>i.name.includes('descripcion')) || inputs[0];
+      const montoInp=inputs.find(i=>i.name.includes('monto')) || inputs[1];
+
+      const card=document.createElement('div');
+      card.className='item-row card border-0 shadow-sm rounded-4';
+      card.innerHTML=`
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div style="min-width:130px"></div>
+            <button type="button" class="btn btn-light btn-sm rounded-circle btn-del" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid #e2e8f0"><i class="bi bi-trash" style="font-size:13px;color:#ef4444"></i></button>
+          </div>
+          <div class="mb-2">
+            <label style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:.06em">DESCRIPCIÓN</label>
+            <div class="desc-slot"></div>
+          </div>
+          <div>
+            <label style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:.06em">MONTO</label>
+            <div class="input-group" style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
+              <span class="input-group-text bg-white border-0" style="font-weight:800">$</span>
+              <div class="monto-slot flex-fill"></div>
+            </div>
+          </div>
+        </div>`;
+
+      const tipoSlot=card.querySelector('div[style*="min-width:130px"]');
+      if(tipoSel){
+        tipoSel.className='form-select form-select-sm';
+        tipoSel.style.cssText='border-radius:999px;font-size:11px;font-weight:700;height:32px;background:#0f172a;color:white;border:0';
+        tipoSlot.appendChild(tipoSel);
+      }
+      if(descInp){
+        descInp.className='form-control';
+        descInp.placeholder='Ej: Arriendo';
+        descInp.style.cssText='border-radius:12px;font-size:13px;height:42px;border:1px solid #e2e8f0';
+        card.querySelector('.desc-slot').appendChild(descInp);
+      }
+      if(montoInp){
+        montoInp.className='form-control border-0 text-end fw-bold';
+        montoInp.placeholder='0';
+        montoInp.style.cssText='font-size:15px;height:42px;box-shadow:none';
+        card.querySelector('.monto-slot').appendChild(montoInp);
+      }
+      // otros campos ocultos si existen
+      temp.querySelectorAll('input[type="hidden"]').forEach(h=>card.appendChild(h));
+      return card;
+    };
+
+    if(btnAdd && wrapper){
+      btnAdd.addEventListener('click', ()=>{
+        const idx=wrapper.dataset.index||0;
+        const proto=wrapper.dataset.prototype.replace(/__name__/g, idx);
+        const card=makeVerticalCard(proto, idx);
+        wrapper.appendChild(card);
+        wrapper.dataset.index=parseInt(idx)+1;
+        calc();
+      });
+      wrapper.addEventListener('click', e=>{ const b=e.target.closest('.btn-del'); if(b){ b.closest('.item-row').remove(); calc(); } });
+      wrapper.addEventListener('input', calc);
+      wrapper.addEventListener('change', calc);
+    }
+    calc();
+  } catch(e){ console.warn('form pro vertical', e); }
+})();
+</script>

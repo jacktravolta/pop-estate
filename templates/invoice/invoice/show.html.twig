@@ -1,0 +1,4 @@
+{% extends 'base.html.twig' %}{% block title %}Factura {{ invoice.folio }}{% endblock %}{% block body %}
+<a href="{{ path('app_invoice_index') }}" class="btn btn-sm btn-light rounded-pill mb-3"><i class="bi bi-arrow-left"></i> Facturas</a>
+<div class="card-modern p-4"><h3 class="fw-bold">Folio {{ invoice.folio }}</h3><p class="mb-1">Emisor: {{ invoice.emisor }}</p><p class="mb-1">Total: ${{ invoice.total|number_format(0,',','.') }}</p><p class="mb-3">Estado: {{ invoice.estado }}</p><div class="d-flex gap-2"><a href="{{ path('app_invoice_edit', {'id': invoice.id}) }}" class="btn btn-light rounded-pill">Editar</a><form method="post" action="{{ path('app_invoice_delete', {'id': invoice.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('delete' ~ invoice.id) }}"><button class="btn btn-outline-danger rounded-pill">Eliminar</button></form></div></div>
+{% endblock %}

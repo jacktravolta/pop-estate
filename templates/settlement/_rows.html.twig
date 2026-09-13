@@ -1,0 +1,25 @@
+{% for s in pagination %}
+{% set estadoClass = "estado-" ~ s.estado|upper %}
+{% set search_string = "#" ~ s.id ~ " " ~ (s.property? s.property.direccion : "") ~ " " ~ (s.property? s.property.rol : "") ~ " " ~ s.estado ~ " " ~ (s.total?? 0) %}
+<tr class="settlement-row" data-search="{{ search_string|lower }}" style="border-bottom:1px solid #f3f4f6">
+<td class="fw-bold" style="padding:14px 16px;color:#111">#{{ s.id }}</td>
+<td style="padding:14px 16px"><div class="fw-semibold" style="font-size:13px">{{ s.property? s.property.direccion : "-" }}</div><div class="small text-muted" style="font-size:11px">{{ s.property? s.property.comuna : "" }}</div></td>
+<td style="padding:14px 16px"><span class="badge" style="background:#f3f4f6;color:#6b7280;border-radius:20px;padding:6px 12px;font-size:11px">{{ s.property? s.property.rol : "-" }}</span></td>
+<td style="padding:14px 16px" class="small">{{ s.fechaInicio? s.fechaInicio|date("d/m/Y") : "" }}<br><span class="text-muted">{{ s.fechaTermino? s.fechaTermino|date("d/m/Y") : "" }}</span></td>
+<td style="padding:14px 16px"><span class="badge {{ estadoClass }}" style="border-radius:20px;padding:6px 12px;font-size:11px;font-weight:600">{{ s.estado }}</span></td>
+<td style="padding:14px 16px"><div class="fw-bold" style="font-size:13px">$ {{ (s.total?? 0)|number_format(0,",",".") }}</div><div class="small text-muted" style="font-size:10px">Neto ${{ (s.totalNeto?? 0)|number_format(0,",",".") }}</div></td>
+<td style="padding:14px 16px;text-align:right"><div class="d-flex gap-1 justify-content-end">
+  <button onclick="openJsonModal({{ s.id }})" style="width:36px;height:36px;background:#eef2ff;color:#6366f1;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #e0e7ff;cursor:pointer" title="Ver"><i class="bi bi-eye"></i></button>
+  {% if s.estado == "PENDIENTE" %}
+  <a href="javascript:void(0)" onclick="openCrudModal('{{ path("app_settlement_edit", {id:s.id}) }}','Editar #{{ s.id }}')" style="width:36px;height:36px;background:#eef2ff;color:#6366f1;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;border:0" title="Editar"><i class="bi bi-pencil"></i></a>
+  <button type="button" onclick="openConfirmModal('¿Marcar como PAGADA?','La liquidación #{{ s.id }} por ${{ (s.total??0)|number_format(0,",",".") }} se marcará como PAGADA. Esta acción cambiará el estado definitivamente.','success','Pagar','{{ path("app_settlement_pay", {id:s.id}) }}')" style="width:36px;height:36px;background:#dcfce7;color:#059669;border-radius:10px;border:0" title="Pagar"><i class="bi bi-cash-coin"></i></button>
+  <button type="button" onclick="openConfirmModal('¿Anular liquidación?','La liquidación #{{ s.id }} será anulada. Podrás eliminarla después pero no volver a PENDIENTE.','warning','Anular','{{ path("app_settlement_anular", {id:s.id}) }}')" style="width:36px;height:36px;background:#fef3c7;color:#d97706;border-radius:10px;border:1px solid #fde68a" title="Anular"><i class="bi bi-ban"></i></button>
+  {% endif %}
+  {% if s.estado != "PAGADA" %}
+  <button type="button" onclick="openConfirmModal('¿Eliminar definitivamente?','La liquidación #{{ s.id }} de {{ s.property? s.property.direccion : "esta propiedad" }} por ${{ (s.total??0)|number_format(0,",",".") }} será eliminada. <b>Esta acción no se puede deshacer.</b>','danger','Eliminar','{{ path("app_settlement_delete", {id:s.id}) }}', '{{ csrf_token("delete" ~ s.id) }}')" style="width:36px;height:36px;background:#fef2f2;color:#dc2626;border-radius:10px;border:1px solid #fecaca" title="Eliminar"><i class="bi bi-trash3"></i></button>
+  {% endif %}
+</div></td>
+</tr>
+{% else %}
+<tr><td colspan="7" class="text-center py-5 text-muted">Sin liquidaciones</td></tr>
+{% endfor %}

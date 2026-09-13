@@ -1,0 +1,4 @@
+{% extends (app.request.query.get('modal') or app.request.isXmlHttpRequest) ? '_blank.html.twig' : 'base.html.twig' %}
+{% block body %}
+{% include 'invoice/_form.html.twig' with {'button_label':'Actualizar'} %}
+{% endblock %}

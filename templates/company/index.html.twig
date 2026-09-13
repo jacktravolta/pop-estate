@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+{% block title %}Empresas{% endblock %}
+{% block body %}
+{% set list = companies is defined ? companies : (pagination is defined ? pagination : []) %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div><h3 class="fw-bold mb-1">Empresas</h3><p class="text-muted small mb-0" id="count-company">{{ list|length }} registros</p></div>
+  <div class="d-flex gap-2">
+    <div class="position-relative">
+      <i class="bi bi-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#9ca3af"></i>
+      <input type="text" id="search-company" class="form-control" placeholder="Buscar RUT o razón..." style="padding-left:36px; width:260px; height:42px; border-radius:12px; font-size:13px">
+    </div>
+    <a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_company_new') }}')" class="btn text-white" style="background:#6366f1; border-radius:12px; height:42px">+ Nueva</a>
+  </div>
+</div>
+<div class="card" style="border:1px solid #eef2f7; border-radius:16px; overflow:hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0" style="font-size:13px">
+      <thead style="background:#f8fafc"><tr><th style="padding:12px 16px; font-size:10px; color:#9ca3af">#</th><th style="font-size:10px; color:#9ca3af">RUT</th><th style="font-size:10px; color:#9ca3af">Razón Social</th><th style="font-size:10px; color:#9ca3af">Email</th><th style="text-align:right; padding-right:16px; font-size:10px; color:#9ca3af">Acciones</th></tr></thead>
+      <tbody id="tbody-company">
+      {% for company in list %}
+        <tr data-search="{{ (company.rut|default('') ~ ' ' ~ company.razonSocial|default('') ~ ' ' ~ company.email|default(''))|lower }}">
+          <td style="padding:12px 16px">#{{ company.id }}</td>
+          <td class="fw-bold">{{ company.rut|default('-') }}</td>
+          <td>{{ company.razonSocial|default('-') }}</td>
+          <td class="small text-muted">{{ company.email|default('-') }}</td>
+          <td style="text-align:right; padding-right:16px">
+            <div class="d-inline-flex gap-1">
+              <a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_company_edit', {'id': company.id}) }}')" class="btn btn-sm" style="background:#eef2ff; color:#6366f1; border-radius:10px; width:32px; height:32px; display:flex; align-items:center; justify-content:center"><i class="bi bi-pencil"></i></a>
+              <form method="post" action="{{ path('app_company_delete', {'id': company.id}) }}" onsubmit="return confirm('¿Eliminar empresa?')" style="display:inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ company.id) }}">
+                <button class="btn btn-sm" style="background:#fef2f2; color:#ef4444; border-radius:10px; width:32px; height:32px"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% else %}<tr><td colspan="5" class="text-center py-4 text-muted small">Sin empresas</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="p-3">{% if pagination is defined %}{{ knp_pagination_render(pagination) }}{% endif %}</div>
+</div>
+<script>document.getElementById('search-company').addEventListener('input',function(e){const q=e.target.value.toLowerCase();let c=0;document.querySelectorAll('#tbody-company tr[data-search]').forEach(r=>{const s=r.getAttribute('data-search');const ok=!q||s.includes(q);r.style.display=ok?'':'none';if(ok)c++;});document.getElementById('count-company').textContent=c+' registros';});</script>
+{% endblock %}

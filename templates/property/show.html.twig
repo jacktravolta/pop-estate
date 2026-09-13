@@ -1,0 +1,4 @@
+{% extends (app.request.query.get('modal') or app.request.isXmlHttpRequest) ? '_blank.html.twig' : 'base.html.twig' %}
+{% block body %}
+{% include 'property/_detail.html.twig' with {'property': property} %}
+{% endblock %}

@@ -1,0 +1,17 @@
+<form method="get" class="d-flex gap-2 mb-3">
+  <div class="flex-grow-1 position-relative">
+    <i class="bi bi-search position-absolute" style="left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+    <input type="text" name="q" value="{{ q|default('') }}" placeholder="Buscar..." class="form-control ps-5" style="border-radius:12px; border:2px solid #e2e8f0; padding:.7rem 1rem .7rem 2.5rem;">
+  </div>
+  {% if estado is defined %}
+  <select name="estado" class="form-select" style="max-width:160px; border-radius:12px;">
+    <option value="">Todos los estados</option>
+    <option value="PENDIENTE" {{ estado=='PENDIENTE'?'selected':'' }}>Pendiente</option>
+    <option value="PAGADA" {{ estado=='PAGADA'?'selected':'' }}>Pagada</option>
+    <option value="ANULADA" {{ estado=='ANULADA'?'selected':'' }}>Anulada</option>
+  </select>
+  {% endif %}
+  <button class="btn btn-light rounded-pill px-4">Filtrar</button>
+  {% if q or (estado is defined and estado) %}<a href="{{ app.request.pathInfo }}" class="btn btn-outline-secondary rounded-pill px-3">Limpiar</a>{% endif %}
+</form>
+<div class="small text-muted mb-2">Mostrando {{ pagination.getTotalItemCount }} resultados</div>

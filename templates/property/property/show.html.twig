@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}{% block title %}{{ property.direccion }}{% endblock %}{% block body %}
+<a href="{{ path('app_property_index') }}" class="btn btn-sm btn-light rounded-pill mb-3"><i class="bi bi-arrow-left"></i> Propiedades</a>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">{{ property.direccion }}</h3>
+    <span class="badge bg-light text-dark border"><i class="bi bi-geo-alt me-1"></i>{{ property.comuna|default('Sin comuna') }} {{ property.ciudad|default('') }}</span>
+    <span class="badge bg-light text-dark border">Rol: {{ property.rol|default('—') }}</span>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ path('app_property_edit', {'id': property.id}) }}" class="btn btn-light rounded-pill"><i class="bi bi-pencil me-1"></i> Editar</a>
+    <form method="post" action="{{ path('app_property_delete', {'id': property.id}) }}" onsubmit="return confirm('¿Eliminar?')">
+      <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ property.id) }}">
+      <button class="btn btn-outline-danger rounded-pill"><i class="bi bi-trash"></i> Eliminar</button>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6"><div class="card-modern p-4"><small class="text-uppercase fw-bold text-muted">Empresa</small><div class="fw-semibold mt-1">{{ property.company ? property.company.razonSocial : 'Sin empresa' }}</div><div class="small text-muted">{{ property.company ? property.company.rut : '' }}</div></div></div>
+  <div class="col-md-6"><div class="card-modern p-4"><small class="text-uppercase fw-bold text-muted">Propietario</small><div class="fw-semibold mt-1">{{ property.owner ? property.owner.nombre : 'Sin propietario' }}</div><div class="small text-muted">{{ property.owner ? property.owner.rut : '' }}</div></div></div>
+  <div class="col-12"><div class="card-modern p-4"><div class="d-flex justify-content-between align-items-center"><h6 class="fw-bold mb-0">Liquidaciones</h6><a href="{{ path('app_settlement_new') }}" class="btn btn-sm btn-indigo rounded-pill">Nueva liquidación</a></div><p class="text-muted small mt-2">Historial de cobros de esta propiedad</p></div></div>
+</div>
+{% endblock %}

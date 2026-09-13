@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}{% block title %}Nueva Propiedad{% endblock %}{% block body %}
+<a href="{{ path('app_property_index') }}" class="btn btn-sm btn-light rounded-pill mb-3"><i class="bi bi-arrow-left"></i> Propiedades</a>
+<h3 class="fw-bold mb-1">Nueva propiedad</h3><p class="text-muted small mb-4">Vincula empresa, propietario y ubicación</p>
+
+<div class="card-modern p-4 p-md-5"><div class="form-modern">
+{{ form_start(form) }}
+<div class="form-section">
+  <div class="form-section-title"><i class="bi bi-geo-alt text-primary"></i> Ubicación</div>
+  <div class="row g-3">
+    <div class="col-md-8">{{ form_row(form.direccion) }}</div>
+    <div class="col-md-4">{{ form_row(form.rol) }}</div>
+    <div class="col-md-4">{{ form_row(form.comuna) }}</div>
+    <div class="col-md-4">{{ form_row(form.ciudad) }}</div>
+  </div>
+</div>
+
+<div class="form-section">
+  <div class="form-section-title"><i class="bi bi-link-45deg text-primary"></i> Vínculos</div>
+  <div class="row g-3">
+    <div class="col-md-6">{{ form_row(form.company) }}</div>
+    <div class="col-md-6">{{ form_row(form.owner) }}</div>
+  </div>
+</div>
+
+<div class="mt-4 d-flex gap-2">
+  <button class="btn btn-indigo px-4"><i class="bi bi-check-lg me-1"></i> Guardar propiedad</button>
+  <a href="{{ path('app_property_index') }}" class="btn btn-light rounded-pill px-4">Cancelar</a>
+</div>
+{{ form_end(form) }}
+</div></div>
+{% endblock %}

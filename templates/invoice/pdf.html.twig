@@ -1,0 +1,37 @@
+<style>
+body{margin:0; font-family:Inter,system-ui,Arial; background:#fff; color:#0f172a}
+.wrap{max-width:760px; margin:0 auto; padding:22px}
+.top{display:flex; justify-content:space-between; border-bottom:3px solid #0f172a; padding-bottom:14px}
+.brand{font-weight:900; font-size:18px; letter-spacing:-.5px}
+.meta{font-size:10px; color:#64748b; line-height:1.4; margin-top:4px}
+.folio{border:2px solid #dc2626; border-radius:8px; padding:8px 14px; text-align:center; min-width:170px}
+.folio .n{font-size:18px; font-weight:900; color:#dc2626}
+.row{display:flex; gap:12px; margin-top:14px}
+.card{flex:1; border:1px solid #e2e8f0; border-radius:12px; padding:10px 12px; background:#f8fafc}
+.card .k{font-size:9px; color:#94a3b8; text-transform:uppercase; font-weight:700; letter-spacing:.5px; margin-bottom:4px}
+.card .v{font-size:12px; line-height:1.45}
+.tbl{width:100%; border-collapse:collapse; margin-top:14px; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden}
+.tbl th{background:#0f172a; color:#fff; font-size:10px; padding:8px 10px; text-align:left}
+.tbl td{padding:9px 10px; font-size:12px; border-bottom:1px solid #f1f5f9}
+.tbl .r{text-align:right}
+.total td{background:#f8fafc; font-weight:700}
+.foot{margin-top:14px; border:1px dashed #cbd5e1; border-radius:8px; padding:8px; text-align:center; font-size:9px; color:#94a3b8}
+</style></head><body><div class="wrap">
+<div class="top"><div><div class="brand">POP ESTATE SpA</div><div class="meta">Gestión Inmobiliaria • Providencia, Santiago<br>admin@pop.cl</div></div>
+<div class="folio"><div style="font-size:9px; color:#dc2626; font-weight:800">FACTURA ELECTRONICA</div><div class="n">Nº {{ invoice.folio|default(invoice.id) }}</div><div style="font-size:8px; margin-top:2px">S.I.I. - SANTIAGO</div></div></div>
+
+<div class="row">
+<div class="card"><div class="k">Emisor</div><div class="v"><b>{{ invoice.emisor|default('POP ESTATE SpA') }}</b><br>RUT: {{ invoice.emisorRut|default('76.123.456-7') }}<br>{{ invoice.emisorDireccion|default('') }}</div></div>
+<div class="card"><div class="k">Receptor</div><div class="v"><b>{{ invoice.receptor|default(invoice.cliente|default('Cliente General')) }}</b><br>RUT: {{ invoice.receptorRut|default('---') }}<br>Fecha: {{ invoice.fechaEmision is defined and invoice.fechaEmision ? invoice.fechaEmision|date('d/m/Y') : 'now'|date('d/m/Y') }}<br>Estado: {{ invoice.estado|default(invoice.status|default('EMITIDA')) }}</div></div>
+</div>
+
+<table class="tbl"><tr><th>#</th><th>Descripción</th><th>Periodo</th><th class="r">Total</th></tr>
+<tr><td>1</td><td>Factura {{ invoice.folio|default(invoice.id) }} - {{ invoice.descripcion|default(invoice.observacion|default('Servicio administración')) }}</td><td>{{ invoice.periodo|default('-') }}</td><td class="r">${{ (invoice.total|default(0))|number_format(0,',','.') }}</td></tr>
+{% set sub = invoice.total|default(0) %}{% set neto=sub/1.19 %}{% set iva=sub-neto %}
+<tr class="total"><td colspan="2"></td><td class="r">NETO</td><td class="r">${{ neto|number_format(0,',','.') }}</td></tr>
+<tr class="total"><td colspan="2"></td><td class="r">IVA 19%</td><td class="r">${{ iva|number_format(0,',','.') }}</td></tr>
+<tr class="total"><td colspan="2"></td><td class="r">TOTAL</td><td class="r">${{ sub|number_format(0,',','.') }}</td></tr>
+</table>
+
+<div class="foot">Timbre SII - {{ 'now'|date('d/m/Y H:i') }} - Folio {{ invoice.folio|default(invoice.id) }}</div>
+</div></body></html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Pop Estate{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>body{background:#f8fafc}.sidebar{width:240px;min-height:100vh;background:#0f172a;position:fixed;left:0;top:0;padding:18px 12px}.main{margin-left:240px;padding:18px 22px}.nav-link{color:#94a3b8;font-size:13px;padding:8px 10px;border-radius:8px;display:flex;align-items:center;margin-bottom:2px}.nav-link:hover,.nav-link.active{background:#1e293b;color:white}</style>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+{% if app.user %}
+<div class="sidebar">
+    <div class="text-white fw-bold mb-4 px-2" style="font-size:18px">POP ESTATE</div>
+    <nav class="nav flex-column">
+        <a class="nav-link" href="{{ path('app_dashboard') }}"><i class="bi bi-grid me-2"></i> Dashboard</a>
+        <a class="nav-link" href="{{ path('app_property_index') }}"><i class="bi bi-houses me-2"></i> Propiedades</a>
+        <a class="nav-link" href="{{ path('app_owner_index') }}"><i class="bi bi-people me-2"></i> Propietarios</a>
+        <a class="nav-link" href="{{ path('app_company_index') }}"><i class="bi bi-building me-2"></i> Empresas</a>
+        <a class="nav-link" href="{{ path('app_invoice_index') }}"><i class="bi bi-file-invoice me-2"></i> Facturas</a>
+        <a class="nav-link" href="{{ path('app_settlement_index') }}"><i class="bi bi-receipt me-2"></i> Liquidaciones</a>
+        <a class="nav-link" href="{{ path('app_bi_index') }}"><i class="bi bi-bar-chart me-2"></i> BI</a>
+        <a class="nav-link" href="{{ path('app_chat_index') }}"><i class="bi bi-robot me-2"></i> Chat BI</a>
+        <a class="nav-link mt-3" href="{{ path('app_logout') }}"><i class="bi bi-box-arrow-left me-2"></i> Salir</a>
+    </nav>
+</div>
+<div class="main">{% for label, messages in app.flashes %}{% for message in messages %}<div class="alert alert-{{ label }} py-2">{{ message }}</div>{% endfor %}{% endfor %}{% block body %}{% endblock %}</div>
+<div class="modal fade" id="crudModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 border-0"><div class="modal-body p-0" id="crudModalBody"></div></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const modalEl=document.getElementById('crudModal');const modalBody=document.getElementById('crudModalBody');let crudModalInstance=null;
+function getCrudModal(){if(!crudModalInstance) crudModalInstance=new bootstrap.Modal(modalEl);return crudModalInstance;}
+function execScripts(c){c.querySelectorAll('script').forEach(o=>{const s=document.createElement('script');s.textContent=o.textContent;o.remove();c.appendChild(s);});}
+window.openCrudModal=async function(url){
+  const r=await fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'}});
+  const h=await r.text();
+  modalBody.innerHTML=h;
+  execScripts(modalBody);
+  getCrudModal().show();
+};
+modalEl&&modalEl.addEventListener('hidden.bs.modal',()=>{modalBody.innerHTML='';});
+// submit delegado que respeta el action del form
+document.addEventListener('submit', async function(e){
+  const form = e.target;
+  if(form && form.id==='settlement-form'){
+    e.preventDefault();
+    const fd=new FormData(form);
+    const res=await fetch(form.action,{method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}});
+    const txt=await res.text();
+    if(txt.trim()==='OK' || txt.includes('settlement') && res.ok){
+      getCrudModal().hide(); location.reload();
+    } else {
+      // si vuelve el form con errores, lo re-renderiza
+      if(txt.includes('<form')){ modalBody.innerHTML=txt; execScripts(modalBody); }
+      else { getCrudModal().hide(); location.reload(); }
+    }
+  }
+});
+</script>
+{% else %}{% block login %}{% endblock %}{% endif %}{% block javascripts %}{% endblock %}</body></html>

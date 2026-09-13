@@ -1,0 +1,38 @@
+<div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+  <div class="position-relative" style="flex:1; max-width:460px">
+    <i class="bi bi-search position-absolute" style="left:14px; top:50%; transform:translateY(-50%); color:#94a3b8"></i>
+    <input id="liveSearchInput" type="text" class="form-control rounded-pill ps-5 pe-5" placeholder="Buscar en tiempo real..." style="height:42px; border:1px solid #e2e8f0" autocomplete="off">
+  </div>
+  <span id="liveSearchCount" class="small text-muted" style="font-size:11px"></span>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var input = document.getElementById('liveSearchInput');
+  var countEl = document.getElementById('liveSearchCount');
+  var table = document.getElementById('crudTable');
+  var totalRows = table.querySelectorAll('tbody tr').length;
+  if (countEl) countEl.textContent = totalRows + ' registros';
+  var timer = null;
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    timer = setTimeout(function() {
+      var q = input.value.toLowerCase();
+      try { q = q.normalize('NFD').replace(/[\u0300-\u036f]/g,''); } catch(e){}
+      var rows = table.querySelectorAll('tbody tr');
+      var visible = 0;
+      for (var i = 0; i < rows.length; i++) {
+        var tr = rows[i];
+        var txt = tr.innerText.toLowerCase();
+        try { txt = txt.normalize('NFD').replace(/[\u0300-\u036f]/g,''); } catch(e){}
+        var ok = (q === '' || txt.indexOf(q)!== -1);
+        tr.style.display = ok? '' : 'none';
+        if (ok) visible++;
+      }
+      if (countEl) {
+        if (q === '') countEl.textContent = totalRows + ' registros';
+        else countEl.textContent = visible + '/' + totalRows + ' registros';
+      }
+    }, 80);
+  });
+});
+</script>

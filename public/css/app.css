@@ -1,0 +1,10 @@
+:root{--indigo:#6366f1; --indigo-dark:#4f46e5; --bg:#ffffff; --card:#ffffff; --border:#e2e8f0; --muted:#64748b; --radius:16px;}
+body{background:#ffffff; font-family:'Inter',system-ui,sans-serif;}
+.card-modern{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 4px 24px rgba(0,0,0,.04);}
+.btn-indigo{background:var(--indigo); color:#fff; border-radius:12px; padding:.6rem 1.25rem; font-weight:600; border:0; transition:.2s;}
+.btn-indigo:hover{background:var(--indigo-dark); color:#fff; transform:translateY(-1px); box-shadow:0 8px 20px rgba(99,102,241,.3);}
+.form-modern label{font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:.4rem; display:block;}
+.form-modern .form-control, .form-modern .form-select{border:2px solid var(--border); border-radius:12px; padding:.75rem 1rem; font-size:.95rem; background:#fff; transition:.2s;}
+.form-modern .form-control:focus, .form-modern .form-select:focus{border-color:var(--indigo); box-shadow:0 0 0 4px rgba(99,102,241,.15); outline:0;}
+.form-section{padding:1.5rem; background:#ffffff; border-radius:12px; border:1px dashed var(--border); margin-bottom:1.5rem;}
+.form-section-title{font-weight:700; font-size:.9rem; margin-bottom:1rem; display:flex; align-items:center; gap:.5rem;}

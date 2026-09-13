@@ -1,0 +1,20 @@
+{{ form_start(form, {'action': app.request.requestUri, 'attr': {'id': (form.vars.id ?? 'crud-form')}}) }}
+<div class="card border-0" style="border:1px solid #eef2f7; border-radius:16px; background:white">
+  <div class="card-body p-4" style="display:flex; flex-direction:column; gap:14px">
+    {% for child in form.children %}
+      {% if child.vars.name != '_token' %}
+        <div>
+          <label style="font-size:11px; font-weight:700; letter-spacing:.06em; color:#111827; text-transform:uppercase; margin-bottom:6px">{{ child.vars.label|default(child.vars.name|replace({'_':' '} )|title) }}</label>
+          {{ form_widget(child, {'attr': {'class': 'form-control', 'style': 'height:44px; border-radius:12px; border:1px solid #e5e7eb; font-size:13px; background:white'}}) }}
+          {{ form_errors(child) }}
+        </div>
+      {% endif %}
+    {% endfor %}
+    {{ form_widget(form._token) }}
+    <div class="d-flex justify-content-end gap-2 mt-2">
+      <button type="button" class="btn btn-light" style="border-radius:12px; height:42px; padding:0 20px" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn text-white" style="background:#6366f1; border-radius:12px; height:42px; padding:0 22px">{{ button_label|default('Crear') }}</button>
+    </div>
+  </div>
+</div>
+{{ form_end(form, {'render_rest': false}) }}

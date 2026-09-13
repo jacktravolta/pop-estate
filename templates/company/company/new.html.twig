@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+{% block title %}Nueva Empresa{% endblock %}
+{% block body %}
+<div class="mb-3"><a href="{{ path('app_company_index') }}" class="btn btn-sm btn-light"><i class="bi bi-arrow-left"></i> Empresas</a></div>
+<h3 class="fw-bold mb-4">Nueva Empresa</h3>
+<div class="card-modern p-4 p-md-5"><div class="form-modern">
+  {{ form_start(form) }}
+    <div class="row g-3">
+      <div class="col-md-6">{{ form_row(form.razonSocial) }}</div>
+      <div class="col-md-3">{{ form_row(form.rut) }}</div>
+      <div class="col-md-3">{{ form_row(form.giro) }}</div>
+      <div class="col-md-6">{{ form_row(form.direccion) }}</div>
+      <div class="col-md-3">{{ form_row(form.comuna) }}</div>
+      <div class="col-md-3">{{ form_row(form.ciudad) }}</div>
+    </div>
+    <div class="mt-4"><button class="btn btn-indigo"><i class="bi bi-check-lg"></i> Guardar</button></div>
+   </div>{{ form_end(form) }}
+</div>
+{% endblock %}

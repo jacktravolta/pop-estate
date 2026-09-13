@@ -1,0 +1,11 @@
+{% extends "base.html.twig" %}
+{% block body %}
+{% if app.request.query.get("modal") or app.request.isXmlHttpRequest %}
+  {% include "settlement/_form.html.twig" %}
+{% else %}
+<div class="container py-4">
+  <a href="{{ path("app_settlement_index") }}" class="btn btn-light btn-sm rounded-pill mb-3"><i class="bi bi-arrow-left"></i> Volver</a>
+  {% include "settlement/_form.html.twig" %}
+</div>
+{% endif %}
+{% endblock %}

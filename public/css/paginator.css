@@ -1,0 +1,29 @@
+.pagination-modern { gap: 6px; display:flex; }
+.pagination-modern .page-link {
+  border: 2px solid #e2e8f0;
+  border-radius: 999px !important;
+  padding: .45rem .85rem;
+  font-weight: 600;
+  font-size: .85rem;
+  color: #475569;
+  background: #fff;
+  min-width: 38px;
+  text-align: center;
+  transition: all .18s ease;
+}
+.pagination-modern .page-link:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #eef2ff;
+  transform: translateY(-1px);
+}
+.pagination-modern .page-item.active .page-link {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(99,102,241,.35);
+}
+.pagination-modern .page-item.disabled .page-link {
+  opacity: .4;
+  background: #f8fafc;
+}

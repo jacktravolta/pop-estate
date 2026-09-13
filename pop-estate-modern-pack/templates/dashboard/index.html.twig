@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+{% block title %}Dashboard | Pop Estate{% endblock %}
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div><h2 class="fw-bold mb-1">Dashboard</h2><p class="text-muted mb-0">Resumen de tu corredora • Todo sin reload</p></div>
+  <div class="d-flex gap-2"><button class="btn btn-light" id="refreshBtn"><i class="bi bi-arrow-clockwise"></i> Actualizar</button><a href="{{ path('invoice_generator') }}" class="btn btn-indigo"><i class="bi bi-magic"></i> Generar Facturación</a></div>
+</div>
+
+<div class="row g-3 mb-4" id="kpiRow">
+  <div class="col-sm-6 col-xl-3"><div class="kpi-card"><div class="kpi-icon bg-indigo-soft"><i class="bi bi-building text-indigo"></i></div><div class="flex-grow-1"><div class="kpi-label">Empresas</div><div class="kpi-value" id="kpiCompanies">— <span class="trend up d-none"></span></div><small class="text-muted">Total registradas</small></div></div></div>
+  <div class="col-sm-6 col-xl-3"><div class="kpi-card"><div class="kpi-icon bg-emerald-soft"><i class="bi bi-house-door text-emerald"></i></div><div class="flex-grow-1"><div class="kpi-label">Propiedades</div><div class="kpi-value" id="kpiProperties">—</div><small class="text-muted">Activas</small></div></div></div>
+  <div class="col-sm-6 col-xl-3"><div class="kpi-card"><div class="kpi-icon bg-amber-soft"><i class="bi bi-receipt text-amber"></i></div><div class="flex-grow-1"><div class="kpi-label">Liquidaciones</div><div class="kpi-value" id="kpiSettlements">—</div><small class="text-muted">Este mes</small></div></div></div>
+  <div class="col-sm-6 col-xl-3"><div class="kpi-card"><div class="kpi-icon bg-violet-soft"><i class="bi bi-currency-dollar text-violet"></i></div><div class="flex-grow-1"><div class="kpi-label">Facturación</div><div class="kpi-value" id="kpiBilling">—</div><small class="text-muted">Total facturado</small></div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-8"><div class="card-modern h-100"><div class="card-modern-header"><h5 class="mb-0">Facturación últimos 6 meses</h5><select class="form-select form-select-sm w-auto" id="chartRange"><option value="6">6 meses</option><option value="12">12 meses</option></select></div><div class="p-3"><canvas id="billingChart" height="110"></canvas></div></div></div>
+  <div class="col-lg-4"><div class="card-modern h-100"><div class="card-modern-header"><h5 class="mb-0">Estados</h5><a href="{{ path('settlement_index') }}" class="btn btn-sm btn-light">Ver todo</a></div><div class="p-3 d-flex justify-content-center"><canvas id="statusChart" width="220" height="220"></canvas></div><div class="px-3 pb-3 d-flex justify-content-around small"><span><i class="dot bg-success"></i> PAGADA</span><span><i class="dot bg-warning"></i> PENDIENTE</span><span><i class="dot bg-danger"></i> ANULADA</span></div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7"><div class="card-modern"><div class="card-modern-header"><h5 class="mb-0">Top Propiedades</h5><div class="d-flex gap-2"><input type="text" id="topSearch" class="form-control form-control-sm" placeholder="Buscar..." style="width:160px"><button class="btn btn-sm btn-light"><i class="bi bi-download"></i></button></div></div><div class="table-responsive"><table class="table table-modern"><thead><tr><th>Dirección</th><th>Empresa</th><th class="text-end">Arriendo</th><th>Estado</th></tr></thead><tbody id="topPropsBody"><tr><td colspan="4" class="text-center py-4"><div class="skeleton w-100"></div></td></tr></tbody></table></div></div></div>
+  <div class="col-lg-5"><div class="card-modern"><div class="card-modern-header"><h5 class="mb-0">Actividad reciente</h5><span class="badge bg-light text-muted">Live</span></div><div class="timeline p-3" id="timeline"><div class="text-center py-4"><div class="spinner-border spinner-border-sm"></div></div></div></div></div>
+</div>
+{% endblock %}
+{% block javascripts %}
+<script>
+async function loadDashboard(){
+  try{
+    // Intenta /api/dashboard si existe, si no usa mock con tus datos reales
+    const res = await fetch('{{ path('dashboard') }}?format=json', {headers:{'X-Requested-With':'XMLHttpRequest'}});
+    const isJson = res.headers.get('content-type')?.includes('json');
+    let data = isJson ? await res.json() : null;
+    if(!data){ data = {companies:100, properties:100, settlements:150, billing:'$124.5M', top: [], timeline: []}; }
+    document.getElementById('kpiCompanies').innerHTML = (data.companies||100)+' <span class="trend up"><i class="bi bi-arrow-up-short"></i>12%</span>';
+    document.getElementById('kpiProperties').textContent = data.properties||100;
+    document.getElementById('kpiSettlements').textContent = data.settlements||150;
+    document.getElementById('kpiBilling').textContent = data.billing||'$124M';
+    if(data.top) document.getElementById('topPropsBody').innerHTML = data.top.map(p=>`<tr><td>${p.direccion}</td><td>${p.empresa}</td><td class="text-end">$${(p.total||0).toLocaleString()}</td><td><span class="badge bg-success-soft text-success">${p.estado||'PAGADA'}</span></td></tr>`).join('') || `<tr><td>Av Providencia 1208</td><td>Pop Estate SpA</td><td class="text-end">$950.000</td><td><span class="badge bg-success-soft text-success">PAGADA</span></td></tr>`;
+    if(data.timeline) document.getElementById('timeline').innerHTML = (data.timeline.map(t=>`<div class="tl-item"><div class="tl-dot bg-success"></div><div><strong>${t.title}</strong><small class="d-block text-muted">${t.desc}</small></div></div>`).join('')) || `<div class="tl-item"><div class="tl-dot bg-success"></div><div><strong>Liquidación #245 PAGADA</strong><small class="d-block text-muted">Av Providencia 1208 - hace 2h</small></div></div>`;
+  }catch(e){ console.log(e); }
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadDashboard();
+  document.getElementById('refreshBtn')?.addEventListener('click', loadDashboard);
+  const c1=document.getElementById('billingChart'); if(c1) new Chart(c1,{type:'bar',data:{labels:['Jul','Ago','Sep','Oct','Nov','Dic'],datasets:[{data:[12,19,15,22,18,24],backgroundColor:'#6366F1',borderRadius:8,borderSkipped:false}]},options:{plugins:{legend:{display:false}},scales:{y:{grid:{color:'#F1F5F9'}},x:{grid:{display:false}}}}});
+  const c2=document.getElementById('statusChart'); if(c2) new Chart(c2,{type:'doughnut',data:{labels:['PAGADA','PENDIENTE','ANULADA'],datasets:[{data:[68,24,8],backgroundColor:['#10B981','#F59E0B','#EF4444'],borderWidth:0}]},options:{cutout:'72%',plugins:{legend:{display:false}}}}});
+});
+</script>
+{% endblock %}

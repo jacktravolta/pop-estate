@@ -1,0 +1,25 @@
+{% if pageCount > 1 %}
+<nav class="d-flex justify-content-end">
+<ul class="pagination pagination-sm mb-0" style="gap:4px">
+{% if previous is defined and previous %}
+<li class="page-item"><a class="page-link rounded-pill" href="{{ path(route, query|merge({(pageParameterName): previous})) }}" style="border:1.5px solid #e2e8f0; padding:6px 12px; font-size:12px; font-weight:600"><i class="bi bi-chevron-left"></i></a></li>
+{% else %}
+<li class="page-item disabled"><span class="page-link rounded-pill" style="border:1.5px solid #e2e8f0; padding:6px 12px; font-size:12px"><i class="bi bi-chevron-left"></i></span></li>
+{% endif %}
+
+{% for page in pagesInRange %}
+{% if page != current %}
+<li class="page-item"><a class="page-link rounded-pill" href="{{ path(route, query|merge({(pageParameterName): page})) }}" style="border:1.5px solid #e2e8f0; background:white; color:#475569; padding:6px 12px; font-size:12px; font-weight:600; min-width:32px; text-align:center">{{ page }}</a></li>
+{% else %}
+<li class="page-item active"><span class="page-link rounded-pill" style="background:#0f172a; border-color:#0f172a; color:white; padding:6px 12px; font-size:12px; font-weight:700; min-width:32px; text-align:center; box-shadow:0 4px 12px rgba(15,23,42,.15)">{{ page }}</span></li>
+{% endif %}
+{% endfor %}
+
+{% if next is defined and next %}
+<li class="page-item"><a class="page-link rounded-pill" href="{{ path(route, query|merge({(pageParameterName): next})) }}" style="border:1.5px solid #e2e8f0; padding:6px 12px; font-size:12px; font-weight:600"><i class="bi bi-chevron-right"></i></a></li>
+{% else %}
+<li class="page-item disabled"><span class="page-link rounded-pill" style="border:1.5px solid #e2e8f0; padding:6px 12px; font-size:12px"><i class="bi bi-chevron-right"></i></span></li>
+{% endif %}
+</ul>
+</nav>
+{% endif %}

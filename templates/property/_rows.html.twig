@@ -1,0 +1,38 @@
+{% for property in properties %}
+{% set ownerName = property.owner is defined and property.owner ? property.owner.nombre|default("") : "" %}
+{% set isBlocked = property.id in blockedIds %}
+{% set cnt = blockedMap[property.id] is defined ? blockedMap[property.id] : 0 %}
+{% set firstId = firstMap[property.id] is defined ? firstMap[property.id] : null %}
+<tr data-search="{{ (property.direccion|default("") ~ " " ~ property.comuna|default("") ~ " " ~ property.rol|default("") ~ " " ~ ownerName)|lower }}" style="border-bottom:1px solid #f3f4f6">
+<td style="padding:14px 16px" class="small text-muted">#{{ property.id }}</td>
+<td style="padding:14px 16px"><div class="fw-semibold">{{ property.direccion|default("-") }}</div></td>
+<td style="padding:14px 16px"><span class="badge" style="background:#f3f4f6;color:#6b7280;border-radius:20px;padding:6px 12px">{{ property.comuna|default("-") }}</span></td>
+<td style="padding:14px 16px" class="small">{{ property.rol|default("-") }}</td>
+<td style="padding:14px 16px"><span class="small">{{ ownerName|default("-") }}</span></td>
+<td style="padding:14px 16px;text-align:right">
+<div class="d-flex gap-1 justify-content-end">
+<a href="javascript:void(0)" onclick="openCrudModal('{{ path("app_property_edit", {"id": property.id}) }}')" class="btn btn-sm" style="width:36px;height:36px;background:#eef2ff;color:#6366f1;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #e0e7ff"><i class="bi bi-pencil"></i></a>
+{% if isBlocked %}
+<div class="position-relative">
+<button class="btn btn-sm btn-blocked-info" data-id="{{ property.id }}" style="width:36px;height:36px;background:#f3f4f6;color:#9ca3af;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;border:0"><i class="bi bi-lock-fill"></i></button>
+<div class="blocked-card" id="card-{{ property.id }}" style="display:none;position:absolute;right:0;bottom:48px;width:320px;background:white;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.18);border:1px solid #e5e7eb;z-index:1000;overflow:hidden">
+<div style="background:#fef3c7;padding:12px 16px;display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;background:#f59e0b;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white"><i class="bi bi-exclamation-triangle-fill"></i></div><div><div style="font-weight:700;font-size:13px;color:#92400e">Propiedad bloqueada</div><div style="font-size:11px;color:#b45309">#{{ property.id }} • {{ cnt }} liquidación(es)</div></div></div>
+<div style="padding:14px 16px">
+<p style="font-size:12px;color:#374151;margin:0 0 12px 0">No se puede eliminar porque tiene <b>{{ cnt }} liquidación(es)</b>.</p>
+{% if cnt == 1 and firstId %}
+<a href="{{ path("app_settlement_show", {"id": firstId}) }}" class="btn btn-sm w-100" style="background:#6366f1;color:white;border-radius:10px;font-size:12px;padding:10px"><i class="bi bi-box-arrow-up-right me-1"></i> Ver liquidación #{{ firstId }}</a>
+{% else %}
+<a href="{{ path("app_settlement_index") }}?q={{ property.id }}" class="btn btn-sm w-100" style="background:#6366f1;color:white;border-radius:10px;font-size:12px;padding:10px"><i class="bi bi-search me-1"></i> Ver {{ cnt }} liquidaciones</a>
+{% endif %}
+</div>
+</div>
+</div>
+{% else %}
+<button type="button" onclick="openConfirmModal('¿Eliminar propiedad?','La propiedad #{{ property.id }} - {{ property.direccion|default("")|e("js") }} será eliminada permanentemente. <b>Esta acción no se puede deshacer.</b>','danger','Eliminar','{{ path("app_property_delete", {"id": property.id}) }}', '{{ csrf_token("delete" ~ property.id) }}')" style="width:36px;height:36px;background:#fef2f2;color:#dc2626;border-radius:10px;border:1px solid #fecaca;display:inline-flex;align-items:center;justify-content:center" title="Eliminar"><i class="bi bi-trash3"></i></button>
+{% endif %}
+</div>
+</td>
+</tr>
+{% else %}
+<tr><td colspan="6" class="text-center py-5 text-muted">Sin propiedades</td></tr>
+{% endfor %}

@@ -1,0 +1,9 @@
+{% extends app.request.headers.get('X-Requested-With') == 'XMLHttpRequest' ? 'base_ajax.html.twig' : 'base.html.twig' %}
+{% block body %}
+<div class="p-1"><h5 class="fw-bold mb-3">Editar Empresa #{{ company.id }}</h5>
+  {{ form_start(form, {'attr': {'action': path('app_company_edit', {'id': company.id})}}) }}
+    {% for field in form %}{% if field.vars.name != '_token' %}<div class="mb-2">{{ form_label(field) }}{{ form_widget(field) }}{{ form_errors(field) }}</div>{% endif %}{% endfor %}
+    <div class="d-flex justify-content-end gap-2 mt-3"><button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:12px">Cancelar</button><button type="submit" class="btn text-white" style="background:#6366f1; border-radius:12px">Actualizar</button></div>
+  {{ form_end(form) }}
+</div>
+{% endblock %}

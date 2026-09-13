@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}{% block title %}Chat AI{% endblock %}{% block body %}
+<style>
+.chat-layout{display:flex; gap:16px; height:calc(100vh - 120px); min-height:0}
+.chat-side{width:300px; flex-shrink:0}
+.chat-main{flex:1; display:flex; flex-direction:column; min-height:0; background:linear-gradient(180deg,#ffffff 0%, #fbfdff 100%); border-radius:24px; border:1px solid #eef2f7; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 32px rgba(0,0,0,.06); overflow:hidden}
+.chat-head{padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; background:rgba(255,255,255,.9); backdrop-filter:blur(12px)}
+.chat-logo{width:38px; height:38px; background:linear-gradient(135deg,#0f172a,#334155); border-radius:12px; display:grid; place-items:center; color:white; animation:logoPulse 2s infinite}
+@keyframes logoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.chat-msgs{flex:1; min-height:0; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:16px; background:radial-gradient(600px at 20% 10%, rgba(99,102,241,.06), transparent)}
+.msg-row{display:flex; gap:10px; animation:fadeUp .35s cubic-bezier(.16,1,.3,1)}
+@keyframes fadeUp{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
+.avatar{width:34px; height:34px; border-radius:11px; display:grid; place-items:center; flex-shrink:0; font-size:13px}
+.avatar.ai{background:#0f172a; color:white} .avatar.user{background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white}
+.bubble{max-width:72%; padding:13px 17px; border-radius:18px; font-size:13.5px; line-height:1.5}
+.bubble.ai{background:white; border:1px solid #eef2f7; border-bottom-left-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.03)}
+.bubble.user{background:linear-gradient(135deg,#6366f1,#4f46e5); color:white; border-bottom-right-radius:8px; box-shadow:0 4px 14px rgba(99,102,241,.28)}
+.typing{display:flex; gap:4px; padding:11px 14px; background:white; border:1px solid #eef2f7; border-radius:18px; width:fit-content}
+.typing span{width:6px; height:6px; background:#94a3b8; border-radius:50%; animation:bounce 1.4s infinite} .typing span:nth-child(2){animation-delay:.2s} .typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0); opacity:.5} 40%{transform:translateY(-5px); opacity:1}}
+.chip{background:#f1f5f9; border:1px solid #e2e8f0; padding:7px 12px; border-radius:999px; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px}
+.chip:hover{background:#0f172a; color:white}
+.input-bar{flex-shrink:0; padding:14px 16px; border-top:1px solid #f1f5f9; background:white; display:flex; gap:10px; align-items:center; position:sticky; bottom:0}
+.input-bar input{flex:1; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:999px; padding:13px 18px; font-size:13.5px; outline:none}
+.input-bar input:focus{border-color:#6366f1; background:white; box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+.btn-send{width:44px; height:44px; min-width:44px; border-radius:999px; background:linear-gradient(135deg,#6366f1,#4f46e5); border:none; color:white; display:grid; place-items:center; cursor:pointer; box-shadow:0 4px 12px rgba(99,102,241,.3)}
+.btn-send:active{transform:scale(.96)}
+</style>
+
+<div class="chat-layout">
+<div class="chat-side d-none d-lg-flex flex-column">
+<div class="card-modern p-4 flex-grow-1 d-flex flex-column" style="border-radius:24px">
+<div class="d-flex align-items-center gap-3 mb-4"><div class="chat-logo"><i class="bi bi-stars"></i></div><div><div class="fw-bold">Pop AI</div><div class="small text-success" style="font-size:11px"><span class="spinner-grow spinner-grow-sm me-1" style="width:7px;height:7px"></span>RAG Postgres Real</div></div></div>
+<div class="small fw-bold text-uppercase text-muted mb-2" style="font-size:10px">Acciones rápidas</div>
+<div class="d-flex flex-column gap-2 mb-3">
+<button class="chip text-start" onclick="ask('cuanto recaudamos este mes')">💰 Recaudación mes</button>
+<button class="chip text-start" onclick="ask('empresas')">🏢 Listar empresas</button>
+<button class="chip text-start" onclick="ask('propiedades Providencia')">📍 Propiedades Providencia</button>
+<button class="chip text-start" onclick="ask('propiedades')">🏠 Todas las propiedades</button>
+</div>
+<div class="mt-auto p-3 rounded-3" style="background:#f8fafc; border:1px solid #eef2f7"><div class="small fw-semibold">BD Conectada</div><div class="small text-muted" style="font-size:11px">202 propiedades • 640 liquidaciones<br>Endpoint: /chatbot/api</div></div>
+</div>
+</div>
+
+<div class="chat-main" id="chatMain">
+<div class="chat-head"><div class="d-flex align-items-center gap-2"><div class="chat-logo"><i class="bi bi-stars"></i></div><div><div class="fw-bold" style="font-size:14px">Pop Estate AI</div><div class="small text-muted" style="font-size:11px">RAG • Postgres • 202 props</div></div></div><span class="badge rounded-pill" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-size:11px">● En línea</span></div>
+<div class="chat-msgs" id="mainChatMessages">
+<div class="msg-row"><div class="avatar ai"><i class="bi bi-stars"></i></div><div class="bubble ai">¡Hola! 👋 Soy <strong>Pop AI</strong> conectado a tu BD real.<br>Escribe abajo y presiona <strong>Enter</strong> o el botón <i class="bi bi-send-fill"></i>.<br><br><span class="chip" onclick="ask('cuanto recaudamos')">💰 ¿Cuánto recaudamos?</span> <span class="chip" onclick="ask('empresas')">🏢 Empresas</span></div></div>
+</div>
+<div class="input-bar">
+<input id="mainChatInput" type="text" placeholder="Escribe aquí... (Enter para enviar)" autocomplete="off">
+<button type="button" class="btn-send" id="btnSendMain" onclick="sendMainChat()"><i class="bi bi-send-fill"></i></button>
+</div>
+</div>
+</div>
+
+<script>
+function ask(t){ const el=document.getElementById('mainChatInput'); el.value=t; el.focus(); sendMainChat(); }
+async function sendMainChat(){
+  const msgs=document.getElementById('mainChatMessages');
+  const safe=q.replace(/</g,'&lt;');
+  msgs.insertAdjacentHTML('beforeend','<div class="msg-row justify-content-end"><div class="bubble user">'+safe+'</div><div class="avatar user"><i class="bi bi-person-fill"></i></div></div>');
+  input.value=''; msgs.scrollTop=msgs.scrollHeight;
+  const tid='typing-'+Date.now();
+  msgs.insertAdjacentHTML('beforeend','<div class="msg-row" id="'+tid+'"><div class="avatar ai"><i class="bi bi-stars"></i></div><div class="typing"><span></span><span></span><span></span></div></div>'); msgs.scrollTop=msgs.scrollHeight;
+  try{
+    const res=await fetch('/chatbot/api',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:q})});
+    const data=await res.json(); document.getElementById(tid)?.remove();
+    const formatted=(data.answer||'Sin respuesta').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+    msgs.insertAdjacentHTML('beforeend','<div class="msg-row"><div class="avatar ai"><i class="bi bi-stars"></i></div><div class="bubble ai">'+formatted+'</div></div>');
+  }catch(e){ document.getElementById(tid)?.remove(); msgs.insertAdjacentHTML('beforeend','<div class="msg-row"><div class="avatar ai">!</div><div class="bubble ai" style="color:#ef4444">❌ '+e+'</div></div>'); }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+document.getElementById('mainChatInput').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); sendMainChat(); } });
+document.getElementById('btnSendMain').addEventListener('click', function(e){ e.preventDefault(); sendMainChat(); });
+</script>
+{% endblock %}

@@ -1,0 +1,4 @@
+{% extends 'base.html.twig' %}{% block body %}
+<div class="d-flex justify-content-between mb-3"><a href="{{ path('app_invoice_index') }}" class="btn btn-light rounded-pill btn-sm">← Volver</a><div class="d-flex gap-2"><a href="{{ path('app_invoice_pdf',{'id':invoice.id}) }}" class="btn btn-dark btn-sm rounded-pill">⬇ PDF</a><a href="{{ path('app_invoice_print',{'id':invoice.id}) }}" target="_blank" class="btn btn-light border btn-sm rounded-pill">Imprimir</a></div></div>
+<div class="card-modern p-0 overflow-hidden" style="border-radius:20px"><iframe src="{{ path('app_invoice_print',{'id':invoice.id}) }}" style="width:100%; height:80vh; border:0; background:white"></iframe></div>
+{% endblock %}

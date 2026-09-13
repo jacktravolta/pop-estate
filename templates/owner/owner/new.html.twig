@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}{% block title %}Nuevo Propietario{% endblock %}{% block body %}
+<a href="{{ path('app_owner_index') }}" class="btn btn-sm btn-light rounded-pill mb-3"><i class="bi bi-arrow-left"></i> Propietarios</a>
+<h3 class="fw-bold mb-1">Nuevo propietario</h3><p class="text-muted small mb-4">Datos tributarios para facturación SII</p>
+<div class="card-modern p-4 p-md-5"><div class="form-modern">{{ form_start(form) }}
+<div class="form-section"><div class="form-section-title"><i class="bi bi-person-badge text-primary"></i> Identificación</div><div class="row"><div class="col-md-6">{{ form_row(form.nombre) }}</div><div class="col-md-3">{{ form_row(form.rut) }}</div><div class="col-md-3">{{ form_row(form.email) }}</div></div></div>
+<div class="form-section"><div class="form-section-title"><i class="bi bi-geo-alt text-primary"></i> Ubicación</div><div class="row"><div class="col-md-6">{{ form_row(form.direccion) }}</div><div class="col-md-3">{{ form_row(form.comuna) }}</div><div class="col-md-3">{{ form_row(form.ciudad) }}</div></div></div>
+<div class="row"><div class="col-md-6">{{ form_row(form.giro) }}</div></div>
+<div class="mt-4 d-flex gap-2"><button class="btn btn-indigo px-4"><i class="bi bi-check-lg me-1"></i> Guardar propietario</button><a href="{{ path('app_owner_index') }}" class="btn btn-light rounded-pill px-4">Cancelar</a></div>
+{{ form_end(form) }}</div></div>{% endblock %}
