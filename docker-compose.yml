@@ -26,7 +26,6 @@ services:
     command: ["php-fpm"]
     volumes:
       - .:/var/www/html
-      # IMPORTANTE: no montar vendor vacío, deja que se use el del contenedor la primera vez
       - /var/www/html/vendor
     depends_on:
       db:
