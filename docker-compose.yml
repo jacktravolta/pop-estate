@@ -7,12 +7,10 @@ services:
       POSTGRES_DB: pop_estate
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pop"]
-      interval: 5s
-      retries: 10
+      interval: 3s
+      retries: 20
 
   redis:
     image: redis:7-alpine
@@ -20,22 +18,19 @@ services:
   mailer:
     image: mailhog/mailhog
 
-  ollama:
-    image: ollama/ollama
-    profiles: ["ollama"]
-
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     entrypoint: ["sh", "./docker/entrypoint.sh"]
     command: ["php-fpm"]
     volumes:
       - .:/var/www/html
+      # IMPORTANTE: no montar vendor vacío, deja que se use el del contenedor la primera vez
       - /var/www/html/vendor
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      DATABASE_URL: postgresql://pop:pop@db:5432/pop_estate?serverVersion=16&charset=utf8
 
   nginx:
     image: nginx:alpine
