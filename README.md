@@ -1,7 +1,6 @@
 # pop-estate - Full Stack PHP Symfony
 
-## 1. Clonar e instalar (0 a 100)
-
+## 1. Clonar e instalar
 ```bash
 git clone https://github.com/jacktravolta/pop-estate.git
 cd pop-estate
