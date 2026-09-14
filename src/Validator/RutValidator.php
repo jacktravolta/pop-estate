@@ -1,25 +1,13 @@
 <?php
-
 namespace App\Validator;
-
-use App\Service\RutService;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
-class RutValidator extends ConstraintValidator
-{
-    public function __construct(private RutService $rutService) {}
-
-    public function validate(mixed $value, Constraint $constraint): void
-    {
-        if (null === $value || '' === $value) {
-            return;
-        }
-
-        if (!$this->rutService->validate((string) $value)) {
-            $this->context->buildViolation($constraint->message)
-                ->setParameter('{{ value }}', (string) $value)
-                ->addViolation();
-        }
+class RutValidator extends ConstraintValidator {
+  public function validate($value, Constraint $constraint){
+    if(!$value) return;
+    if(!RutHelper::isValid($value)){
+        $this->context->buildViolation('RUT inválido: formato 12.345.678-9, DV incorrecto')->addViolation();
     }
+  }
 }

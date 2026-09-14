@@ -1,20 +1,28 @@
-<div id="crudModalBody" class="p-4">{% block body %}{% endblock %}</div>
+{% block body %}{% endblock %}
 <script>
-var form=document.querySelector("#crudModalBody form");
-if(form){
-form.addEventListener("submit",function(e){
-e.preventDefault();
-var fd=new FormData(form);
-fetch(form.action,{method:form.method,body:fd,headers:{"X-Requested-With":"XMLHttpRequest"}})
-.then(r=>r.text()).then(t=>{
-if(t.trim()==="OK"){
-var m=document.getElementById("crudModal");
-if(window.bootstrap){var i=bootstrap.Modal.getInstance(m); if(i) i.hide();}
-document.querySelectorAll(".modal-backdrop").forEach(b=>b.remove());
-document.body.classList.remove("modal-open");
-setTimeout(()=>location.reload(),200);
-}else{document.getElementById("crudModalBody").innerHTML=t;}
-});
-});
-}
+(function(){
+  const form = document.querySelector("#crudModalBody form");
+  if(!form) return;
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    if(btn){ btn.disabled=true; const old=btn.innerHTML; btn.innerHTML='Guardando...'; btn.dataset.old=old; }
+    const fd = new FormData(form);
+    fetch(form.action, {method: form.method, body: fd, headers: {"X-Requested-With":"XMLHttpRequest"}})
+    .then(r=>r.text())
+    .then(t=>{
+      if(t.trim()==="OK"){
+        const m = document.getElementById("crudModal");
+        if(window.bootstrap){ const i=bootstrap.Modal.getInstance(m); if(i) i.hide(); }
+        document.querySelectorAll(".modal-backdrop").forEach(b=>b.remove());
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow='';
+        setTimeout(()=>location.reload(), 150);
+      } else {
+        document.getElementById("crudModalBody").innerHTML = t;
+      }
+    })
+    .catch(()=>{ if(btn){ btn.disabled=false; btn.innerHTML=btn.dataset.old; } });
+  });
+})();
 </script>

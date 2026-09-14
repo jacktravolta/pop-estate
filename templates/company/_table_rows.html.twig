@@ -1,0 +1,60 @@
+{% for company in companies %}
+  {% set propCount = repo.countPropertiesByCompany(company) %}
+  <tr>
+    <td style="padding:12px 16px"><span style="background:#f3f4f6;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700">#{{ company.id }}</span></td>
+    <td><span class="fw-bold" style="font-family:monospace;background:#eef2ff;color:#4338ca;padding:4px 8px;border-radius:8px;font-size:12px">{{ company.rut }}</span></td>
+    <td><div class="fw-bold" style="font-size:13px">{{ company.razonSocial }}</div><small style="font-size:11px;color:#9ca3af">{{ company.giro|default('Sin giro')|slice(0,45) }}</small></td>
+    <td><div style="font-size:12px">{{ company.direccion|slice(0,35) }}</div><small style="font-size:11px;color:#64748b">{{ company.comuna|default('') }} {{ company.ciudad? '• '~company.ciudad : '' }}</small></td>
+    <td><div style="font-size:12px">{{ company.email|default('-') }}</div></td>
+    <td>{% if propCount > 0 %}<span class="badge" style="background:#6366f1;color:white;border-radius:20px">{{ propCount }} <i class="bi bi-houses"></i></span>{% else %}<span class="badge" style="background:#f3f4f6;color:#9ca3af">0</span>{% endif %}</td>
+    <td style="text-align:right;padding-right:16px">
+      <div class="d-inline-flex gap-1">
+        <a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_company_show', {'id': company.id}) }}')" class="btn btn-sm" title="Ver" style="background:#f5f3ff;color:#7c3aed;border-radius:10px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid #ede9fe"><i class="bi bi-eye"></i></a>
+        <a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_company_edit', {'id': company.id}) }}')" class="btn btn-sm" title="Editar" style="background:#eef2ff;color:#6366f1;border-radius:10px;width:32px;height:32px;display:flex;align-items:center;justify-content:center"><i class="bi bi-pencil"></i></a>
+        {% if propCount > 0 %}
+          <button type="button" class="btn btn-sm btn-cannot-delete-c" data-name="{{ company.razonSocial|e('html_attr') }}" data-count="{{ propCount }}" data-id="{{ company.id }}" style="background:#fff7ed;color:#ea580c;border-radius:10px;width:32px;height:32px;border:1px solid #ffedd5"><i class="bi bi-shield-lock"></i></button>
+        {% else %}
+          <form method="post" action="{{ path('app_company_delete', {'id': company.id}) }}" onsubmit="return confirm('¿Archivar {{ company.razonSocial }}? (soft-delete)')" style="display:inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ company.id) }}">
+            <button class="btn btn-sm" title="Archivar" style="background:#fef2f2;color:#ef4444;border-radius:10px;width:32px;height:32px;border:1px solid #fee2e2"><i class="bi bi-archive"></i></button>
+          </form>
+        {% endif %}
+      </div>
+    </td>
+  </tr>
+{% else %}
+  <tr><td colspan="7" class="text-center py-5"><div style="color:#9ca3af"><i class="bi bi-building" style="font-size:28px"></i><div class="mt-2" style="font-size:13px">Sin empresas{% if q %} para "{{ q }}"{% endif %}</div></div></td></tr>
+{% endfor %}
+
+<div class="modal fade" id="cannotDeleteCompanyModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:20px;border:none"><div class="p-4">
+  <div class="d-flex gap-3 align-items-start">
+    <div style="width:48px;height:48px;background:#fff7ed;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="bi bi-shield-lock" style="font-size:22px;color:#ea580c"></i></div>
+    <div style="flex:1">
+      <h6 class="fw-bold mb-1" style="font-size:14px">No se puede archivar</h6>
+      <p class="mb-2" style="font-size:13px;color:#64748b">La empresa <strong id="cdc-name" style="color:#111827"></strong> tiene <strong id="cdc-count" style="color:#ea580c"></strong> propiedad(es) activa(s).</p>
+      <div class="p-3 rounded-3 mb-3" style="background:#f8fafc;border:1px solid #eef2f7;font-size:12px">
+        <div class="fw-bold mb-1" style="font-size:10px;letter-spacing:.06em;color:#9ca3af">¿POR QUÉ?</div>
+        En el modelo original del challenge, <code>Property.company</code> es NOT NULL. Si borras la empresa, dejas huérfanas propiedades que facturan.<br><br>
+        <div class="fw-bold mb-1" style="font-size:10px;letter-spacing:.06em;color:#9ca3af">¿QUÉ HACER?</div>
+        1. Ve a <a href="{{ path('app_property_index') }}" style="color:#6366f1">Propiedades</a> y filtra por esta empresa<br>
+        2. Reasigna a otra empresa o archiva sus propiedades<br>
+        3. Vuelve y podrás archivar
+      </div>
+      <div class="d-flex gap-2 justify-content-end">
+        <button class="btn btn-light" data-bs-dismiss="modal" style="border-radius:12px;height:38px;font-size:13px">Entendido</button>
+        <a href="{{ path('app_property_index') }}" class="btn text-white" style="background:#6366f1;border-radius:12px;height:38px;font-size:13px;display:flex;align-items:center"><i class="bi bi-houses me-1"></i> Ver props</a>
+      </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  </div>
+</div></div></div></div>
+
+<script>
+document.querySelectorAll('.btn-cannot-delete-c').forEach(btn=>{
+  btn.addEventListener('click', function(){
+    document.getElementById('cdc-name').textContent = this.dataset.name;
+    document.getElementById('cdc-count').textContent = this.dataset.count;
+    new bootstrap.Modal(document.getElementById('cannotDeleteCompanyModal')).show();
+  });
+});
+</script>

@@ -1,8 +1,21 @@
-{% extends (app.request.query.get('modal') or app.request.isXmlHttpRequest) ? '_blank.html.twig' : 'base.html.twig' %}
+{% extends app.request.isXmlHttpRequest? 'base_ajax.html.twig' : 'base.html.twig' %}
 {% block body %}
-<div class="p-4">
-<h4 class="fw-bold">Detalle #{{ company.id }}</h4>
-<pre class="small bg-light p-3 rounded">{{ dump(company) }}</pre>
-<a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_company_edit', {id:company.id}) }}?modal=1','Editar')" class="btn btn-indigo w-100 rounded-pill mt-3">Editar</a>
+<div class="p-3">
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div class="d-flex gap-3 align-items-center">
+      <div style="width:48px;height:48px;background:#eef2ff;border-radius:14px;display:flex;align-items:center;justify-content:center"><i class="bi bi-building" style="font-size:22px;color:#6366f1"></i></div>
+      <div><h5 class="fw-bold mb-0">#{{ company.id }} {{ company.razonSocial }}</h5><small style="font-family:monospace;background:#f3f4f6;padding:2px 6px;border-radius:6px;font-size:11px">{{ company.rut }}</small> {% if hasProps %}<span class="badge ms-2" style="background:#6366f1;color:white">{{ propCount }} props</span>{% endif %}</div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  </div>
+  <div class="row g-2 mb-3" style="font-size:12px">
+    <div class="col-6"><div class="p-2 rounded-3" style="background:#f8fafc;border:1px solid #eef2f7"><small style="font-size:10px;color:#9ca3af;font-weight:700">GIRO</small><div>{{ company.giro|default('-') }}</div></div></div>
+    <div class="col-6"><div class="p-2 rounded-3" style="background:#f8fafc;border:1px solid #eef2f7"><small style="font-size:10px;color:#9ca3af;font-weight:700">EMAIL FACT</small><div>{{ company.email|default('-') }}</div></div></div>
+    <div class="col-12"><div class="p-2 rounded-3" style="background:#f8fafc;border:1px solid #eef2f7"><small style="font-size:10px;color:#9ca3af;font-weight:700">DIRECCIÓN</small><div>{{ company.direccion }} • {{ company.comuna|default('') }} {{ company.ciudad? '• '~company.ciudad : '' }}</div></div></div>
+  </div>
+  <div class="d-flex gap-2 mt-4">
+    <a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_company_edit', {'id': company.id}) }}')" class="btn flex-fill" style="background:#6366f1;color:white;border-radius:12px;height:42px">Editar</a>
+    <button type="button" class="btn btn-light flex-fill" data-bs-dismiss="modal" style="border-radius:12px;height:42px">Cerrar</button>
+  </div>
 </div>
 {% endblock %}

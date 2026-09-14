@@ -1,43 +1,77 @@
 {% extends 'base.html.twig' %}
 {% block title %}Empresas{% endblock %}
 {% block body %}
-{% set list = companies is defined ? companies : (pagination is defined ? pagination : []) %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div><h3 class="fw-bold mb-1">Empresas</h3><p class="text-muted small mb-0" id="count-company">{{ list|length }} registros</p></div>
-  <div class="d-flex gap-2">
+{# KPI REAL HEADER - req #5 #}
+<div class="row g-2 mb-4">
+  <div class="col-6 col-md-2"><div class="card p-3" style="border:1px solid #eef2ff;background:#fff"><small style="font-size:10px;color:#9ca3af;font-weight:800">TOTAL</small><div class="fw-bold" style="font-size:22px;color:#111827">{{ kpi.total }}</div><small style="font-size:11px;color:#64748b">{{ kpi.totalProps }} props vinculadas</small></div></div>
+  <div class="col-6 col-md-2"><div class="card p-3" style="border:1px solid #e0e7ff;background:#eef2ff"><small style="font-size:10px;color:#6366f1;font-weight:800">CON GIRO</small><div class="fw-bold" style="font-size:22px;color:#4338ca">{{ kpi.conGiro }}</div><small style="font-size:11px;color:#6366f1">{{ kpi.total>0? ((kpi.conGiro/kpi.total*100)|round) :0 }}% completo</small></div></div>
+  <div class="col-6 col-md-2"><div class="card p-3" style="border:1px solid #fef3c7;background:#fffbeb"><small style="font-size:10px;color:#d97706;font-weight:800">CON EMAIL</small><div class="fw-bold" style="font-size:22px;color:#92400e">{{ kpi.conEmail }}</div><small style="font-size:11px;color:#b45309">facturación</small></div></div>
+  <div class="col-6 col-md-3"><div class="card p-3" style="border:1px solid #ddd6fe;background:#f5f3ff"><small style="font-size:10px;color:#7c3aed;font-weight:800">ESTE MES</small><div class="fw-bold" style="font-size:22px;color:#5b21b6">+{{ kpi.esteMes }}</div><small style="font-size:11px;color:#7c3aed">nuevas empresas</small></div></div>
+  <div class="col-12 col-md-3"><div class="card p-3" style="border:1px solid #c7d2fe;background:#6366f1;color:white"><small style="font-size:10px;color:#e0e7ff;font-weight:800">CON PROPIEDADES</small><div class="fw-bold" style="font-size:22px">{{ kpi.conProps }}</div><small style="font-size:11px;color:#e0e7ff">{{ kpi.totalProps }} inmuebles activos</small></div></div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-1" style="font-size:18px">Empresas que facturan <span class="badge" style="background:#eef2ff;color:#6366f1;font-size:11px;vertical-align:middle">{{ totalResults }}</span></h4>
+    <p class="text-muted small mb-0" style="font-size:12px">Entidad central del challenge • RUT único • soft-delete • bloqueada si tiene propiedades</p>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
     <div class="position-relative">
-      <i class="bi bi-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#9ca3af"></i>
-      <input type="text" id="search-company" class="form-control" placeholder="Buscar RUT o razón..." style="padding-left:36px; width:260px; height:42px; border-radius:12px; font-size:13px">
+      <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:14px"></i>
+      <input type="text" id="q-company" value="{{ q }}" class="form-control" placeholder="Buscar RUT, razón, giro..." style="padding-left:36px;width:300px;height:42px;border-radius:12px;font-size:13px;border:1px solid #e5e7eb">
     </div>
-    <a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_company_new') }}')" class="btn text-white" style="background:#6366f1; border-radius:12px; height:42px">+ Nueva</a>
+    <a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_company_new') }}')" class="btn text-white fw-bold" style="background:#6366f1;border-radius:12px;height:42px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(99,102,241,.3)"><i class="bi bi-plus-lg"></i> Nueva</a>
   </div>
 </div>
-<div class="card" style="border:1px solid #eef2f7; border-radius:16px; overflow:hidden">
+
+<div class="card" style="border:1px solid #eef2f7;border-radius:16px;overflow:hidden">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0" style="font-size:13px">
-      <thead style="background:#f8fafc"><tr><th style="padding:12px 16px; font-size:10px; color:#9ca3af">#</th><th style="font-size:10px; color:#9ca3af">RUT</th><th style="font-size:10px; color:#9ca3af">Razón Social</th><th style="font-size:10px; color:#9ca3af">Email</th><th style="text-align:right; padding-right:16px; font-size:10px; color:#9ca3af">Acciones</th></tr></thead>
-      <tbody id="tbody-company">
-      {% for company in list %}
-        <tr data-search="{{ (company.rut|default('') ~ ' ' ~ company.razonSocial|default('') ~ ' ' ~ company.email|default(''))|lower }}">
-          <td style="padding:12px 16px">#{{ company.id }}</td>
-          <td class="fw-bold">{{ company.rut|default('-') }}</td>
-          <td>{{ company.razonSocial|default('-') }}</td>
-          <td class="small text-muted">{{ company.email|default('-') }}</td>
-          <td style="text-align:right; padding-right:16px">
-            <div class="d-inline-flex gap-1">
-              <a href="javascript:void(0)" onclick="openCrudModal('{{ path('app_company_edit', {'id': company.id}) }}')" class="btn btn-sm" style="background:#eef2ff; color:#6366f1; border-radius:10px; width:32px; height:32px; display:flex; align-items:center; justify-content:center"><i class="bi bi-pencil"></i></a>
-              <form method="post" action="{{ path('app_company_delete', {'id': company.id}) }}" onsubmit="return confirm('¿Eliminar empresa?')" style="display:inline">
-                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ company.id) }}">
-                <button class="btn btn-sm" style="background:#fef2f2; color:#ef4444; border-radius:10px; width:32px; height:32px"><i class="bi bi-trash"></i></button>
-              </form>
-            </div>
-          </td>
+      <thead style="background:#f8fafc">
+        <tr>
+          <th style="padding:12px 16px;font-size:10px;color:#9ca3af;letter-spacing:.06em">#</th>
+          <th style="font-size:10px;color:#9ca3af;letter-spacing:.06em">RUT</th>
+          <th style="font-size:10px;color:#9ca3af;letter-spacing:.06em">RAZÓN SOCIAL / GIRO</th>
+          <th style="font-size:10px;color:#9ca3af;letter-spacing:.06em">DIRECCIÓN</th>
+          <th style="font-size:10px;color:#9ca3af;letter-spacing:.06em">EMAIL FACT</th>
+          <th style="font-size:10px;color:#9ca3af;letter-spacing:.06em">PROPS</th>
+          <th style="text-align:right;padding-right:16px;font-size:10px;color:#9ca3af;letter-spacing:.06em">ACCIONES</th>
         </tr>
-      {% else %}<tr><td colspan="5" class="text-center py-4 text-muted small">Sin empresas</td></tr>{% endfor %}
+      </thead>
+      <tbody id="tbody-company">
+        {% include 'company/_table_rows.html.twig' with {'companies': companies, 'repo': repo} %}
       </tbody>
     </table>
   </div>
-  <div class="p-3">{% if pagination is defined %}{{ knp_pagination_render(pagination) }}{% endif %}</div>
+
+  {# PAGINADOR LILA - req #3 #}
+  <div class="d-flex justify-content-between align-items-center p-3" style="border-top:1px solid #f3f4f6;background:#fcfcff">
+    <small style="font-size:12px;color:#9ca3af">Página {{ page }} de {{ totalPages }} • {{ totalResults }} resultados{% if q %} para "{{ q }}"{% endif %}</small>
+    <div class="d-flex gap-1">
+      {% if page > 1 %}<a href="?q={{ q }}&page={{ page-1 }}" class="btn btn-sm" style="border:1px solid #e5e7eb;border-radius:10px;background:white"><i class="bi bi-chevron-left"></i></a>{% endif %}
+      {% for p in 1..totalPages %}
+        {% if p == page %}<span class="btn btn-sm text-white" style="background:#6366f1;border-radius:10px;width:34px">{{ p }}</span>
+        {% elseif p <= 3 or p > totalPages-2 or (p >= page-1 and p <= page+1) %}<a href="?q={{ q }}&page={{ p }}" class="btn btn-sm" style="border:1px solid #e5e7eb;border-radius:10px;background:white;width:34px">{{ p }}</a>
+        {% elseif p == 4 and page > 5 %}<span class="btn btn-sm disabled" style="border:none">...</span>{% endif %}
+      {% endfor %}
+      {% if page < totalPages %}<a href="?q={{ q }}&page={{ page+1 }}" class="btn btn-sm" style="border:1px solid #e5e7eb;border-radius:10px;background:white"><i class="bi bi-chevron-right"></i></a>{% endif %}
+    </div>
+  </div>
 </div>
-<script>document.getElementById('search-company').addEventListener('input',function(e){const q=e.target.value.toLowerCase();let c=0;document.querySelectorAll('#tbody-company tr[data-search]').forEach(r=>{const s=r.getAttribute('data-search');const ok=!q||s.includes(q);r.style.display=ok?'':'none';if(ok)c++;});document.getElementById('count-company').textContent=c+' registros';});</script>
+
+<script>
+let timerC=null;
+document.getElementById('q-company').addEventListener('input', function(e){
+  clearTimeout(timerC);
+  const q = e.target.value;
+  timerC = setTimeout(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('q', q);
+    url.searchParams.set('page', '1');
+    window.history.replaceState({}, '', url);
+    fetch('?q='+encodeURIComponent(q)+'&page=1', {headers:{'X-Requested-With':'XMLHttpRequest'}})
+     .then(r=>r.text()).then(html=>{ document.getElementById('tbody-company').innerHTML = html; });
+  }, 300);
+});
+</script>
 {% endblock %}

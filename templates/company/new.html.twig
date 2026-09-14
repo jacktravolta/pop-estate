@@ -1,9 +1,66 @@
-{% extends app.request.headers.get('X-Requested-With') == 'XMLHttpRequest' ? 'base_ajax.html.twig' : 'base.html.twig' %}
+{% extends app.request.isXmlHttpRequest? 'base_ajax.html.twig' : 'base.html.twig' %}
 {% block body %}
-<div class="p-1"><h5 class="fw-bold mb-3">Nueva Empresa</h5>
-  {{ form_start(form, {'attr': {'action': path('app_company_new')}}) }}
-    {% for field in form %}{% if field.vars.name != '_token' %}<div class="mb-2">{{ form_label(field) }}{{ form_widget(field) }}{{ form_errors(field) }}</div>{% endif %}{% endfor %}
-    <div class="d-flex justify-content-end gap-2 mt-3"><button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:12px">Cancelar</button><button type="submit" class="btn text-white" style="background:#6366f1; border-radius:12px">Guardar</button></div>
-  {{ form_end(form) }}
+<div class="p-2">
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <div style="width:42px;height:42px;background:#eef2ff;border-radius:12px;display:flex;align-items:center;justify-content:center"><i class="bi bi-building-add" style="color:#6366f1;font-size:18px"></i></div>
+    <div><h5 class="mb-0 fw-bold" style="font-size:15px">Nueva Empresa que factura</h5><small style="font-size:11px;color:#9ca3af">RUT validado tiempo real • challenge original</small></div>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+  </div>
+
+  {{ form_start(form, {'attr': {'id':'company-form','action':path('app_company_new'),'novalidate':'novalidate','style':'display:flex;flex-direction:column;gap:14px'}}) }}
+
+  <div class="row g-3">
+    <div class="col-5">
+      <label class="form-label" style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#374151">RUT *</label>
+      <div class="position-relative">
+        {{ form_widget(form.rut, {'attr':{'id':'rut-input-c','class':'form-control','placeholder':'76.123.456-7','autocomplete':'off','style':'height:44px;border-radius:12px;border:1px solid #e5e7eb;font-size:13px;padding-right:36px'}}) }}
+        <span id="rut-icon-c" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px"></span>
+      </div>
+      <div id="rut-feedback-c" style="font-size:11px;margin-top:6px;min-height:16px"></div>
+      {{ form_errors(form.rut) }}
+    </div>
+    <div class="col-7">
+      <label class="form-label" style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#374151">RAZÓN SOCIAL *</label>
+      {{ form_widget(form.razonSocial, {'attr':{'class':'form-control','placeholder':'Pop Estate SpA','style':'height:44px;border-radius:12px;border:1px solid #e5e7eb;font-size:13px'}}) }}
+      {{ form_errors(form.razonSocial) }}
+    </div>
+    <div class="col-12">
+      <label class="form-label" style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#9ca3af">GIRO</label>
+      {{ form_widget(form.giro, {'attr':{'class':'form-control','placeholder':'Gestión inmobiliaria / arriendo','style':'height:44px;border-radius:12px;border:1px solid #eef2f7;font-size:13px;background:#fcfcff'}}) }}
+    </div>
+    <div class="col-12">
+      <label class="form-label" style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#374151">DIRECCIÓN *</label>
+      {{ form_widget(form.direccion, {'attr':{'class':'form-control','placeholder':'Av. Apoquindo 3600, Las Condes','style':'height:44px;border-radius:12px;border:1px solid #e5e7eb;font-size:13px'}}) }}
+      {{ form_errors(form.direccion) }}
+    </div>
+    <div class="col-6">
+      <label class="form-label" style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#9ca3af">COMUNA</label>
+      {{ form_widget(form.comuna, {'attr':{'class':'form-control','placeholder':'Las Condes','style':'height:44px;border-radius:12px;border:1px solid #eef2f7;font-size:13px'}}) }}
+    </div>
+    <div class="col-6">
+      <label class="form-label" style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#9ca3af">CIUDAD</label>
+      {{ form_widget(form.ciudad, {'attr':{'class':'form-control','placeholder':'Santiago','style':'height:44px;border-radius:12px;border:1px solid #eef2f7;font-size:13px'}}) }}
+    </div>
+    <div class="col-12">
+      <label class="form-label" style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#374151">EMAIL FACTURACIÓN</label>
+      {{ form_widget(form.email, {'attr':{'class':'form-control','placeholder':'facturacion@popestate.cl','style':'height:44px;border-radius:12px;border:1px solid #e5e7eb;font-size:13px'}}) }}
+      {{ form_errors(form.email) }}
+    </div>
+  </div>
+
+  {{ form_widget(form._token) }}
+  <div class="d-flex justify-content-end gap-2 mt-3 pt-3" style="border-top:1px solid #f3f4f6">
+    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius:12px;height:42px;padding:0 20px;font-size:13px">Cancelar</button>
+    <button type="submit" id="btn-submit-c" class="btn text-white fw-bold" style="background:#6366f1;border-radius:12px;height:42px;padding:0 24px;font-size:13px;box-shadow:0 6px 18px rgba(99,102,241,.35)"><i class="bi bi-check-lg me-1"></i> Guardar empresa</button>
+  </div>
+  {{ form_end(form, {'render_rest': false}) }}
 </div>
+
+<script>
+function cleanRut(r){return r.replace(/[^0-9kK]/g,'').toUpperCase();}
+function formatRut(r){let c=cleanRut(r); if(c.length<=1) return c; let b=c.slice(0,-1), dv=c.slice(-1); b=b.replace(/\B(?=(\d{3})+(?!\d))/g,"."); return b+"-"+dv;}
+function validaRut(r){let c=cleanRut(r); if(c.length<2) return false; let body=c.slice(0,-1), dv=c.slice(-1); if(body.length<7) return false; let sum=0,mul=2; for(let i=body.length-1;i>=0;i--){sum+=parseInt(body[i])*mul; mul=mul===7?2:mul+1;} let res=11-(sum%11); let dvr=res===11?'0':res===10?'K':res.toString(); return dvr===dv;}
+const inp=document.getElementById('rut-input-c'), fb=document.getElementById('rut-feedback-c'), ic=document.getElementById('rut-icon-c'), btn=document.getElementById('btn-submit-c');
+if(inp){inp.addEventListener('input',function(e){let raw=e.target.value, fmt=formatRut(raw); e.target.value=fmt; let c=cleanRut(fmt); if(c.length<2){fb.innerHTML='';ic.innerHTML='';inp.style.borderColor='#e5e7eb';inp.style.background='#fff';btn.disabled=true;btn.style.opacity='0.5';return;} if(c.length>=2&&c.length<8){fb.innerHTML='<span style="color:#f59e0b"><i class="bi bi-hourglass-split"></i> Incompleto...</span>';ic.innerHTML='<i class="bi bi-dash-circle" style="color:#f59e0b"></i>';inp.style.borderColor='#fde68a';inp.style.background='#fffbeb';btn.disabled=true;btn.style.opacity='0.6';return;} if(validaRut(fmt)){fb.innerHTML='<span style="color:#10b981"><i class="bi bi-check-circle-fill"></i> RUT válido</span>';ic.innerHTML='<i class="bi bi-check-circle-fill" style="color:#10b981"></i>';inp.style.borderColor='#6366f1';inp.style.background='#eef2ff';inp.style.boxShadow='0 0 0 3px rgba(99,102,241,.15)';btn.disabled=false;btn.style.opacity='1';}else{fb.innerHTML='<span style="color:#ef4444"><i class="bi bi-x-circle-fill"></i> RUT inválido</span>';ic.innerHTML='<i class="bi bi-x-circle-fill" style="color:#ef4444"></i>';inp.style.borderColor='#ef4444';inp.style.background='#fef2f2';btn.disabled=true;btn.style.opacity='0.5';}}); if(inp.value){inp.dispatchEvent(new Event('input'));} else {btn.disabled=true;btn.style.opacity='0.5';}}
+</script>
 {% endblock %}
