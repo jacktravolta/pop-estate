@@ -5,11 +5,5 @@
 /node_modules/
 .env.local
 .env.*.local
-.env.test
-.env.test.local
-.env.prod
-.env.prod.local
-# NO ignorar .env.example
 !.env.example
 !docker/entrypoint.sh
-!docker/wait-for-db.sh
