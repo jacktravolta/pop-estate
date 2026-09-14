@@ -3,8 +3,6 @@ RUN apt-get update && apt-get install -y git unzip libpq-dev libzip-dev libicu-d
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
-RUN chmod +x docker/entrypoint.sh 2>/dev/null || true
-RUN mkdir -p var/cache var/log && chmod -R 777 var
-RUN if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || echo "APP_ENV=dev" > .env; fi
+RUN chmod +x docker/entrypoint.sh 2>/dev/null || true && mkdir -p var/cache var/log && chmod -R 777 var
 ENTRYPOINT ["sh", "./docker/entrypoint.sh"]
 CMD ["php-fpm"]
