@@ -3,7 +3,7 @@
 ## 1. Clonar e instalar (0 a 100)
 
 ```bash
-git clone https://github.com/TU_USUARIO/pop-estate.git
+git clone https://github.com/jacktravolta/pop-estate.git
 cd pop-estate
 docker compose up -d --build
 # espera 15s que parta postgres + php
